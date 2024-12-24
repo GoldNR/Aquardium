@@ -1,0 +1,37 @@
+<TabbedPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            x:Class="Aquardium.DashboardPage"
+            Title="{Binding SelectedArduino.Name}">
+    <Shell.FlyoutBehavior>
+        <FlyoutBehavior>Flyout</FlyoutBehavior>
+    </Shell.FlyoutBehavior>
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False"/>
+    </Shell.BackButtonBehavior>
+
+
+    <!-- Sensors Tab -->
+    <ContentPage Title="Sensors">
+        <ScrollView>
+            <VerticalStackLayout Padding="20">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                    <Label  Text="Status:"      FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                    <Label  Text="--"           FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="StatusValue"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                    <Label  Text="Temperature:" FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                    <Label  Text="-- &#176;C"   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TemperatureValue"/>
+                </Grid>
+            </VerticalStackLayout>
+        </ScrollView>
+    </ContentPage>
+
+    <!-- Controls Tab -->
+    <ContentPage Title="Controls">
+        <VerticalStackLayout Padding="20">
+            <Label Text="Control Arduino" FontSize="18"/>
+            <Button Text="Send Command" Clicked="SendControlCommand"/>
+        </VerticalStackLayout>
+    </ContentPage>
+
+</TabbedPage>
