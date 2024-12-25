@@ -7,13 +7,21 @@
     Title="Aquardium"
     FlyoutBehavior="Flyout">
 
-    <ShellContent
+    <!--<ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage"
-        Shell.NavBarIsVisible="False"/>
+        Shell.NavBarIsVisible="False"/>-->
+
+    <FlyoutItem Title="Home">
+        <ShellContent ContentTemplate="{DataTemplate local:MainPage}"
+                      Route="MainPage"
+                      Shell.NavBarIsVisible="False"/>
+    </FlyoutItem>
+
     <FlyoutItem Title="Arduinos" FlyoutDisplayOptions="AsMultipleItems" x:Name="ArduinoFlyoutItem">
         <ShellContent Route="dashboard"
-                      ContentTemplate="{DataTemplate local:DashboardPage}" />
+                      ContentTemplate="{DataTemplate local:DashboardPage}"
+                      Shell.NavBarIsVisible="True"/>
     </FlyoutItem>
 </Shell>

@@ -35,6 +35,12 @@ namespace Aquardium
             ConnectToMqtt();
             ReconnectButton.IsEnabled = false;
         }
+        private void OnSimulateConnectionClicked(object sender, EventArgs e)
+        {
+            var mqttServiceSim = new MqttService();
+            mqttServiceSim.SimulateArduinoConnection("test-arduino", "test-arduino");
+            ConnectToMqtt();
+        }
     }
 
 }

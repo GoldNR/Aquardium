@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Aquardium.MainPage"
-             Shell.FlyoutBehavior="Disabled">
+             Shell.FlyoutBehavior="Flyout">
 
     <ScrollView>
         <VerticalStackLayout
@@ -24,6 +24,12 @@
                 Clicked="OnReconnectClicked"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"/>
+
+            <Button Text="Simulate Arduino Connection"
+                Clicked="OnSimulateConnectionClicked"
+                VerticalOptions="CenterAndExpand"
+                HorizontalOptions="Center"/>    
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

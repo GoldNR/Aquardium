@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Client;
+using MQTTnet.Packets;
 
 namespace Aquardium
 {
@@ -23,6 +24,12 @@ namespace Aquardium
             this.statusLabel = statusLabel;
             var factory = new MqttFactory();
             mqttClient = factory.CreateMqttClient();
+        }
+
+        public MqttService()        // FOR TESTING PURPOSES
+        {
+            var sim = new MqttFactory();
+            mqttClient = sim.CreateMqttClient();
         }
 
         public async Task ConnectMqttAsync()
@@ -98,7 +105,7 @@ namespace Aquardium
 
         private void HandleArduinoOnline(string arduinoId, string arduinoName)
         {
-            statusLabel.Text = "Arduino Connected! Please wait...";
+            //statusLabel.Text = "Arduino Connected! Please wait...";
             var existingArduino = App.ArduinoList.FirstOrDefault(a => a.Id == arduinoId);
 
             if (existingArduino == null)
@@ -106,17 +113,17 @@ namespace Aquardium
                 var newArduino = new ArduinoDevice { Name = arduinoName, Id = arduinoId };
                 App.ArduinoList.Add(newArduino);
 
-                (Shell.Current as AppShell).RegisterArduino(newArduino);
-            }
+                if (Shell.Current is AppShell appShell)
+                    appShell.RegisterArduino(newArduino);
 
+                if (Shell.Current?.CurrentPage is MainPage)
+                {
+                    // Reuse existing DashboardPage instance or create if null
+                    if (AppShell.CurrentDashboardPage == null)
+                        AppShell.CurrentDashboardPage = new DashboardPage { SelectedArduino = newArduino };
 
-            if (Shell.Current?.CurrentPage is MainPage)
-            {
-                // Reuse existing DashboardPage instance or create if null
-                if (AppShell.CurrentDashboardPage == null)
-                    AppShell.CurrentDashboardPage = new DashboardPage { SelectedArduino = existingArduino };
-
-                Application.Current.MainPage = new NavigationPage(AppShell.CurrentDashboardPage);
+                    Application.Current.MainPage = new NavigationPage(AppShell.CurrentDashboardPage);
+                }
             }
         }
 
@@ -204,5 +211,42 @@ namespace Aquardium
 
             await mqttClient.PublishAsync(mqttMessage);
         }
+
+
+
+        public void SimulateArduinoConnection(string arduinoId, string arduinoName)     // FOR MULTIPLE ARDUINO TESTING PURPOSES
+        {
+            var message = $@"{{
+                ""id"": ""{arduinoId}"",
+                ""device"": ""{arduinoName}"",
+                ""status"": ""online""
+                }}";
+
+            // Simulate receiving an MQTT message
+            var appMessage = new MqttApplicationMessage
+            {
+                Topic = "status",
+                PayloadSegment = Encoding.UTF8.GetBytes(message)
+            };
+
+            var publishPacket = new MqttPublishPacket
+            {
+                Topic = appMessage.Topic,
+                PayloadSegment = appMessage.PayloadSegment
+            };
+
+            var eventArgs = new MqttApplicationMessageReceivedEventArgs(
+                clientId: "simulated-client",
+                applicationMessage: appMessage,
+                publishPacket: publishPacket,
+                acknowledgeHandler: (_, _) => Task.CompletedTask // No-op handler
+            );
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                HandleReceivedApplicationMessage(eventArgs);  // Call the existing handler
+            });
+        }
+
     }
 }

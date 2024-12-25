@@ -2,8 +2,6 @@
 {
     public partial class AppShell : Shell
     {
-        public static MainPage CurrentMainPage { get; set; }
-
         public static DashboardPage CurrentDashboardPage { get; set; }
 
         private HashSet<string> _registeredRoutes = new HashSet<string>();
@@ -17,14 +15,13 @@
         {
             var route = $"{arduino.Name}";
 
-            // Check if the route is already registered
             if (!_registeredRoutes.Contains(route))
             {
                 Routing.RegisterRoute(route, typeof(DashboardPage));
                 _registeredRoutes.Add(route);
             }
 
-            // Create FlyoutItem
+            // Create FlyoutItem with NavigationPage
             var flyoutItem = new FlyoutItem
             {
                 Title = arduino.Name,
@@ -39,18 +36,10 @@
                     }
                 }
             };
-
-            // Add FlyoutItem to Shell
             if (!Shell.Current.Items.Any(x => x.Title == arduino.Name))
-            {
                 Shell.Current.Items.Add(flyoutItem);
-                Console.WriteLine($"Flyout item added: {arduino.Name}");
-            }
-            else
-            {
-                Console.WriteLine($"Flyout item already exists: {arduino.Name}");
-            }
         }
+
 
 
         public ShellItem FindFlyoutItemByTitle(string title)
@@ -99,8 +88,17 @@
             return null;
         }
 
+        /*protected override void OnAppearing()
+        {
+            base.OnAppearing();
 
-
+            // Simulate Arduino connecting (for testing)
+            Task.Delay(2000).ContinueWith(_ =>
+            {
+                var mqttService = new MqttService();
+                mqttService.SimulateArduinoConnection("arduino-2", "Arduino 2");
+            });
+        }*/
 
     }
 }

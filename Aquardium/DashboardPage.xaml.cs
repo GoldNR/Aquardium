@@ -6,11 +6,10 @@ public partial class DashboardPage : TabbedPage
 {
     public ObservableCollection<ArduinoDevice> ArduinoList { get; set; }
     public ArduinoDevice SelectedArduino { get; set; }
-    private string allArduinos = "";
 
     public DashboardPage()
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
         ArduinoList = App.ArduinoList;
         BindingContext = this;
 
@@ -19,26 +18,31 @@ public partial class DashboardPage : TabbedPage
             SelectedArduino = ArduinoList.First();
         }
         else DisplayAlert("Error", "ArduinoList is empty!", "OK");
+    }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        string allArduinos = "";
+        string allShellItems = "";
+        foreach (var ard in App.ArduinoList)
+        {
+            allArduinos += ard.Name + ", ";
+        }
         if (Shell.Current != null)
-            foreach (var sh in Shell.Current.Items)
-                allArduinos += sh.Title + ", ";
 
-        DisplayAlert("ShellItems", allArduinos);
+            foreach (var sh in Shell.Current.Items)
+            {
+                allArduinos += sh.Title + ", ";
+            }
+        DisplayAlert("ArduinoList", allArduinos);
+        DisplayAlert("ShellItems", allShellItems);
     }
 
     public void DisplayAlert(string title, string message)  //FOR TESTING
     {
         DisplayAlert(title, message, "OK");
     }
-
-    protected override async void OnAppearing()     //FOR TESTING
-    {
-        base.OnAppearing();
-        string flyoutItems = string.Join(", ", Shell.Current.Items.Select(i => i.Title));
-        await Application.Current.MainPage.DisplayAlert("Flyout Items", flyoutItems, "OK");
-    }
-
 
     public void UpdateStatus(string message)
     {
@@ -52,14 +56,34 @@ public partial class DashboardPage : TabbedPage
 
     private void SendControlCommand(object sender, EventArgs e)
     {
-        if (SelectedArduino != null)
+        /*if (SelectedArduino != null)
         {
             DisplayAlert("Command Sent", $"Control command sent to {SelectedArduino.Name}", "OK");
         }
         else
         {
             DisplayAlert("Error", "No Arduino selected", "OK");
+        }*/
+        string allArduinos = "";
+        string allShellItems = "";
+        foreach (var ard in App.ArduinoList)
+        {
+            allArduinos += ard.Name + ", ";
         }
+        if (Shell.Current != null)
+
+            foreach (var sh in Shell.Current.Items)
+            {
+                allArduinos += sh.Title + ", ";
+            }
+        AppShell.CurrentDashboardPage.DisplayAlert("ArduinoList", allArduinos);
+        AppShell.CurrentDashboardPage.DisplayAlert("ShellItems", allShellItems);
+    }
+
+    private void OnSimulateConnectionClicked(object sender, EventArgs e)
+    {
+        var mqttService = new MqttService();
+        mqttService.SimulateArduinoConnection("test-arduino", "test-arduino");
     }
 }
 

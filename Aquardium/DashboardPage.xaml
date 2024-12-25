@@ -1,17 +1,15 @@
 <TabbedPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
             x:Class="Aquardium.DashboardPage"
-            Title="{Binding SelectedArduino.Name}">
-    <Shell.FlyoutBehavior>
-        <FlyoutBehavior>Flyout</FlyoutBehavior>
-    </Shell.FlyoutBehavior>
+            Title="{Binding SelectedArduino.Name}"
+            Shell.FlyoutBehavior="Flyout">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False"/>
     </Shell.BackButtonBehavior>
 
-
     <!-- Sensors Tab -->
-    <ContentPage Title="Sensors">
+    <ContentPage Title="Sensors"
+                 Shell.FlyoutBehavior="Flyout">
         <ScrollView>
             <VerticalStackLayout Padding="20">
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
@@ -27,11 +25,16 @@
     </ContentPage>
 
     <!-- Controls Tab -->
-    <ContentPage Title="Controls">
+    <ContentPage Title="Controls"
+                 Shell.FlyoutBehavior="Flyout">
         <VerticalStackLayout Padding="20">
             <Label Text="Control Arduino" FontSize="18"/>
             <Button Text="Send Command" Clicked="SendControlCommand"/>
+
+            <Button Text="Simulate Arduino Connection"
+                Clicked="OnSimulateConnectionClicked"
+                VerticalOptions="CenterAndExpand"
+                HorizontalOptions="Center"/>
         </VerticalStackLayout>
     </ContentPage>
-
 </TabbedPage>
