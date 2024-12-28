@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Aquardium.ConnectionPage"
+             Title="ConnectionPage"
+             NavigationPage.HasNavigationBar="False">
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+            <Label
+               x:Name="StatusLabel"
+               Text="Connecting to MQTT..."
+               FontSize="15"
+               HorizontalOptions="Center"
+               VerticalOptions="Center" />
+
+            <Button
+                x:Name="ReconnectButton"
+                IsEnabled="False"
+                Text="Reconnect"
+                Clicked="OnReconnectClicked"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
