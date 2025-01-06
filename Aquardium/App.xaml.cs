@@ -1,16 +1,12 @@
-﻿using System.Collections.ObjectModel;
-
-namespace Aquardium
+﻿namespace Aquardium
 {
     public partial class App : Application
     {
-        public static ObservableCollection<ArduinoDevice> ArduinoList { get; set; }
-
         public App()
         {
             InitializeComponent();
-            ArduinoList = new ObservableCollection<ArduinoDevice>();
-            MainPage = new AppShell();
+            MainPage = new NavigationPage(new ConnectionPage());
+            //MainPage = new NavigationPage(new MainPage() { Detail = new NavigationPage(new ArduinoTabbedPage(new ArduinoDevice { Id = "Simulated Arduino", Status = "online" })), Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice> { new ArduinoDevice { Id = "Simulated Arduino", Status = "online" }}});
         }
     }
 }

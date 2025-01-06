@@ -4,24 +4,11 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Aquardium"
-    Title="Aquardium"
-    FlyoutBehavior="Flyout">
+    Shell.FlyoutBehavior="Flyout"
+    Title="Aquardium">
 
-    <!--<ShellContent
+    <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage"
-        Shell.NavBarIsVisible="False"/>-->
-
-    <FlyoutItem Title="Home">
-        <ShellContent ContentTemplate="{DataTemplate local:MainPage}"
-                      Route="MainPage"
-                      Shell.NavBarIsVisible="False"/>
-    </FlyoutItem>
-
-    <FlyoutItem Title="Arduinos" FlyoutDisplayOptions="AsMultipleItems" x:Name="ArduinoFlyoutItem">
-        <ShellContent Route="dashboard"
-                      ContentTemplate="{DataTemplate local:DashboardPage}"
-                      Shell.NavBarIsVisible="True"/>
-    </FlyoutItem>
+        Route="MainPage" />
 </Shell>

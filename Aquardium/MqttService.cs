@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -8,6 +7,7 @@ using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Packets;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Aquardium
 {
@@ -18,35 +18,30 @@ namespace Aquardium
         private readonly Label statusLabel;
         private readonly Button reconnectButton;
 
-        public MqttService(Button reconnectButton, Label statusLabel)
+        public MqttService(Label statusLabel, Button reconnectButton)
         {
-            this.reconnectButton = reconnectButton;
             this.statusLabel = statusLabel;
-            var factory = new MqttFactory();
-            mqttClient = factory.CreateMqttClient();
-        }
-
-        public MqttService()        // FOR TESTING PURPOSES
-        {
-            var sim = new MqttFactory();
-            mqttClient = sim.CreateMqttClient();
-        }
-
-        public async Task ConnectMqttAsync()
-        {
+            this.reconnectButton = reconnectButton;
+            this.statusLabel.Text = "Connecting to MQTT broker...";
+            mqttClient = new MqttFactory().CreateMqttClient();
             mqttOptions = new MqttClientOptionsBuilder()
-                .WithClientId("MauiAppClient")
-                .WithTcpServer("broker.hivemq.com", 1883)  // Public test broker
+                .WithClientId("Aquardium")
+                .WithTcpServer("broker.hivemq.com", 1883)
                 .WithCleanSession()
                 .Build();
-
             mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
 
+            ConnectAsync();
+        }
+
+        public async Task ConnectAsync()
+        {
             try
             {
                 if (!mqttClient.IsConnected)
                 {
                     var connectResult = await mqttClient.ConnectAsync(mqttOptions);
+
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         statusLabel.Text = connectResult.ResultCode == MqttClientConnectResultCode.Success
@@ -56,8 +51,8 @@ namespace Aquardium
 
                     if (connectResult.ResultCode == MqttClientConnectResultCode.Success)
                     {
-                        await mqttClient.SubscribeAsync("sensors/temperature");
                         await mqttClient.SubscribeAsync("status");
+                        await mqttClient.SubscribeAsync("sensors/temperature");
                     }
                 }
             }
@@ -73,110 +68,99 @@ namespace Aquardium
 
         private Task HandleReceivedApplicationMessage(MqttApplicationMessageReceivedEventArgs e)
         {
-            var message = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
             if (e.ApplicationMessage.Topic == "status")
             {
-                MainThread.BeginInvokeOnMainThread(async () =>
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    if (AppShell.CurrentDashboardPage != null)
-                        AppShell.CurrentDashboardPage.UpdateStatus(message); // TEST
-
-                    var payloadJson = JsonSerializer.Deserialize<Dictionary<string, string>>(message);
-                    var arduinoId = payloadJson.GetValueOrDefault("id", "unknown");
-                    var arduinoName = payloadJson.GetValueOrDefault("device", "arduino");
-                    var status = payloadJson.GetValueOrDefault("status", "");
+                    var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment));
+                    var arduinoId = payload.GetValueOrDefault("id", "unknown");
+                    var status = payload.GetValueOrDefault("status", "unknown");
 
                     if (status == "online")
                     {
-                        HandleArduinoOnline(arduinoId, arduinoName);
+                        HandleArduinoOnline(arduinoId);
                     }
-                    else if (status == "offline" && AppShell.CurrentDashboardPage != null)
+                    else if (status == "offline")
                     {
                         HandleArduinoOffline(arduinoId);
                     }
                 });
             }
 
-            else if (e.ApplicationMessage.Topic == "sensors/temperature" && AppShell.CurrentDashboardPage != null)
-                MainThread.InvokeOnMainThreadAsync(() => { AppShell.CurrentDashboardPage.UpdateTemperature(message); });
+            else if (e.ApplicationMessage.Topic == "sensors/temperature")
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment));
+                    var arduinoId = payload.GetValueOrDefault("id", "unknown");
+                    var temperature = payload.GetValueOrDefault("temp", "unknown");
+
+                    WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
+                });
+            }
 
             return Task.CompletedTask;
         }
 
-        private void HandleArduinoOnline(string arduinoId, string arduinoName)
+        private void HandleArduinoOnline(string arduinoId)
         {
-            //statusLabel.Text = "Arduino Connected! Please wait...";
-            var existingArduino = App.ArduinoList.FirstOrDefault(a => a.Id == arduinoId);
+            statusLabel.Text = "Arduino connected! Please wait...";
 
-            if (existingArduino == null)
+            if (Application.Current.MainPage is MainPage mainPage)
             {
-                var newArduino = new ArduinoDevice { Name = arduinoName, Id = arduinoId };
-                App.ArduinoList.Add(newArduino);
+                if (mainPage.Devices == null)
+                    mainPage.Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice>();
 
-                if (Shell.Current is AppShell appShell)
-                    appShell.RegisterArduino(newArduino);
+                var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
 
-                if (Shell.Current?.CurrentPage is MainPage)
+                if (device == null) // If Arduino is not in the list, add it
                 {
-                    // Reuse existing DashboardPage instance or create if null
-                    if (AppShell.CurrentDashboardPage == null)
-                        AppShell.CurrentDashboardPage = new DashboardPage { SelectedArduino = newArduino };
-
-                    Application.Current.MainPage = new NavigationPage(AppShell.CurrentDashboardPage);
+                    device = new ArduinoDevice { Id = arduinoId, Status = "Online" };
+                    mainPage.Devices.Add(device);
+                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device));
                 }
+                else // If Arduino is in the list, update its status
+                {
+                    device.Status = "Online";
+                    WeakReferenceMessenger.Default.Send(new StatusUpdateMessage(arduinoId, "Online"));
+                }
+            }
+
+            else if (Application.Current.MainPage is NavigationPage navPage &&
+             navPage.CurrentPage is ConnectionPage)
+            {
+                var device = new ArduinoDevice
+                {
+                    Id = arduinoId,
+                    Status = "Online"
+                };
+
+                var newMainPage = new MainPage
+                {
+                    Detail = new NavigationPage(new ArduinoTabbedPage(device))
+                };
+
+                newMainPage.Devices.Add(device);
+
+                Application.Current.MainPage = newMainPage;
             }
         }
 
         private void HandleArduinoOffline(string arduinoId)
         {
-            //TEST
-            string allArduinos = "";
-            string allShellItems = "";
-            foreach (var ard in App.ArduinoList)
+            if (Application.Current?.MainPage is MainPage mainPage)
             {
-                allArduinos += ard.Name + ", ";
-            }
-            if (Shell.Current != null)
-            foreach (var sh in Shell.Current.Items)
-            {
-                allArduinos += sh.Title + ", ";
-            }
-            AppShell.CurrentDashboardPage.DisplayAlert("ArduinoList Before", allArduinos);
-            AppShell.CurrentDashboardPage.DisplayAlert("ShellItems Before", allShellItems);
-            //TEST
+                var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
 
-            var arduinoToRemove = App.ArduinoList.FirstOrDefault(a => a.Id == arduinoId);
-            if (arduinoToRemove != null)
-            {
-                App.ArduinoList.Remove(arduinoToRemove);
-                var flyoutItem = Shell.Current?.Items.FirstOrDefault(x => x.Title == arduinoToRemove.Name);
-                if (flyoutItem != null)
+                if (device != null)
                 {
-                    Shell.Current?.Items.Remove(flyoutItem);
-                    ShowReconnectionAlert(); // Remove this after test
-
+                    device.Status = "Offline";
+                    WeakReferenceMessenger.Default.Send(new StatusUpdateMessage(device.Id, "Offline"));
                 }
-                //if (App.ArduinoList.Count == 0 && AppShell.CurrentDashboardPage != null)
-                    ///ShowReconnectionAlert();
 
+                if (mainPage.Devices.All(d => d.Status == "Offline"))
+                    ShowReconnectionAlert();
             }
-
-            //TEST
-            allArduinos = "";
-            allShellItems = "";
-            foreach (var ard in App.ArduinoList)
-            {
-                allArduinos += ard.Name + ", ";
-            }
-            if (Shell.Current != null)
-
-                foreach (var sh in Shell.Current.Items)
-            {
-                allArduinos += sh.Title + ", ";
-            }
-            AppShell.CurrentDashboardPage.DisplayAlert("ArduinoList After", allArduinos);
-            AppShell.CurrentDashboardPage.DisplayAlert("ShellItems After", allShellItems);
-            //TEST
         }
 
         private async void ShowReconnectionAlert()
@@ -187,14 +171,14 @@ namespace Aquardium
             while (!reconnected)
             {
                 // Show the alert and wait for user acknowledgment
-                await Application.Current.MainPage.DisplayAlert(
+                await (Application.Current.MainPage).DisplayAlert(
                     "Connection Lost",
                     "No Arduinos connected. Reconnecting...",
                     "OK"
                 );
 
                 // Check if at least one Arduino has reconnected
-                if (App.ArduinoList.Count > 0)
+                if (Application.Current.MainPage is MainPage mainPage && mainPage.Devices.Any(s => s.Status == "Online"))
                 {
                     reconnected = true;
                 }
@@ -211,42 +195,5 @@ namespace Aquardium
 
             await mqttClient.PublishAsync(mqttMessage);
         }
-
-
-
-        public void SimulateArduinoConnection(string arduinoId, string arduinoName)     // FOR MULTIPLE ARDUINO TESTING PURPOSES
-        {
-            var message = $@"{{
-                ""id"": ""{arduinoId}"",
-                ""device"": ""{arduinoName}"",
-                ""status"": ""online""
-                }}";
-
-            // Simulate receiving an MQTT message
-            var appMessage = new MqttApplicationMessage
-            {
-                Topic = "status",
-                PayloadSegment = Encoding.UTF8.GetBytes(message)
-            };
-
-            var publishPacket = new MqttPublishPacket
-            {
-                Topic = appMessage.Topic,
-                PayloadSegment = appMessage.PayloadSegment
-            };
-
-            var eventArgs = new MqttApplicationMessageReceivedEventArgs(
-                clientId: "simulated-client",
-                applicationMessage: appMessage,
-                publishPacket: publishPacket,
-                acknowledgeHandler: (_, _) => Task.CompletedTask // No-op handler
-            );
-
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                HandleReceivedApplicationMessage(eventArgs);  // Call the existing handler
-            });
-        }
-
     }
 }

@@ -1,46 +1,32 @@
-﻿using MQTTnet;
-using System.Collections.ObjectModel;
-using System.Text;
+﻿using System.Collections.ObjectModel;
 
 namespace Aquardium
 {
-    public partial class MainPage : ContentPage
+    public partial class MainPage : FlyoutPage
     {
-        private MqttService mqttService;
+        public ObservableCollection<ArduinoDevice> Devices { get; set; }
 
         public MainPage()
         {
             InitializeComponent();
-            if (App.ArduinoList == null)
+            BindingContext = this;
+            Devices = new ObservableCollection<ArduinoDevice>();
+            DeviceListView.ItemsSource = Devices;
+        }
+
+        private void OnDeviceSelected(object sender, SelectedItemChangedEventArgs e)
+        {
+            if (e.SelectedItem is ArduinoDevice selectedDevice)
             {
-                App.ArduinoList = new ObservableCollection<ArduinoDevice>();
+                DeviceListView.SelectedItem = null;
+                Detail = new NavigationPage(new ArduinoTabbedPage(selectedDevice));
             }
-            mqttService = new MqttService(ReconnectButton, StatusLabel);
-            ConnectToMqtt();
-            
-        }
-
-        public void DisplayAlert(string title, string message)
-        {
-            DisplayAlert(title, message, "OK");
-        }
-
-        private async void ConnectToMqtt()
-        {
-            await mqttService.ConnectMqttAsync();
-        }
-
-        private void OnReconnectClicked(object sender, EventArgs e)
-        {
-            ConnectToMqtt();
-            ReconnectButton.IsEnabled = false;
-        }
-        private void OnSimulateConnectionClicked(object sender, EventArgs e)
-        {
-            var mqttServiceSim = new MqttService();
-            mqttServiceSim.SimulateArduinoConnection("test-arduino", "test-arduino");
-            ConnectToMqtt();
         }
     }
 
+    public class ArduinoDevice
+    {
+        public string Id { get; set; }
+        public string Status { get; set; }
+    }
 }
