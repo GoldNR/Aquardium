@@ -9,191 +9,183 @@ using MQTTnet.Client;
 using MQTTnet.Packets;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace Aquardium
+namespace Aquardium;
+
+public class MqttService
 {
-    public class MqttService
+    private readonly IMqttClient mqttClient;
+    private MqttClientOptions mqttOptions;
+    private readonly Label statusLabel;
+    private readonly Button reconnectButton;
+
+    public MqttService(Label statusLabel, Button reconnectButton)
     {
-        private readonly IMqttClient mqttClient;
-        private MqttClientOptions mqttOptions;
-        private readonly Label statusLabel;
-        private readonly Button reconnectButton;
+        this.statusLabel = statusLabel;
+        this.reconnectButton = reconnectButton;
+        this.statusLabel.Text = "Connecting to Internet...";
+        mqttClient = new MqttFactory().CreateMqttClient();
+        mqttOptions = new MqttClientOptionsBuilder()
+            .WithClientId("Aquardium")
+            .WithTcpServer("broker.hivemq.com", 1883)
+            .WithCleanSession()
+            .Build();
+        mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
 
-        public MqttService(Label statusLabel, Button reconnectButton)
+        ConnectAsync();
+    }
+
+    public async Task ConnectAsync()
+    {
+        try
         {
-            this.statusLabel = statusLabel;
-            this.reconnectButton = reconnectButton;
-            this.statusLabel.Text = "Connecting to MQTT broker...";
-            mqttClient = new MqttFactory().CreateMqttClient();
-            mqttOptions = new MqttClientOptionsBuilder()
-                .WithClientId("Aquardium")
-                .WithTcpServer("broker.hivemq.com", 1883)
-                .WithCleanSession()
-                .Build();
-            mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
-
-            ConnectAsync();
-        }
-
-        public async Task ConnectAsync()
-        {
-            try
+            if (!mqttClient.IsConnected)
             {
-                if (!mqttClient.IsConnected)
+                var connectResult = await mqttClient.ConnectAsync(mqttOptions);
+
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    var connectResult = await mqttClient.ConnectAsync(mqttOptions);
+                    statusLabel.Text = connectResult.ResultCode == MqttClientConnectResultCode.Success
+                        ? "Connected to Internet. Waiting for Arduino..."
+                        : $"Failed to connect: {connectResult.ResultCode}";
+                });
 
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        statusLabel.Text = connectResult.ResultCode == MqttClientConnectResultCode.Success
-                            ? "Connected to MQTT broker. Waiting for Arduino..."
-                            : $"Failed to connect: {connectResult.ResultCode}";
-                    });
-
-                    if (connectResult.ResultCode == MqttClientConnectResultCode.Success)
-                    {
-                        await mqttClient.SubscribeAsync("status");
-                        await mqttClient.SubscribeAsync("sensors/temperature");
-                    }
+                if (connectResult.ResultCode == MqttClientConnectResultCode.Success)
+                {
+                    await mqttClient.SubscribeAsync("status");
+                    await mqttClient.SubscribeAsync("sensors/temperature");
                 }
             }
-            catch (Exception)
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    statusLabel.Text = "No internet connection!";
-                    reconnectButton.IsEnabled = true;
-                });
-            }
         }
-
-        private Task HandleReceivedApplicationMessage(MqttApplicationMessageReceivedEventArgs e)
+        catch (Exception)
         {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                statusLabel.Text = "No Internet connection!";
+                reconnectButton.IsEnabled = true;
+            });
+        }
+    }
+
+    private Task HandleReceivedApplicationMessage(MqttApplicationMessageReceivedEventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            var payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+
+            if (payloadString.Contains("\"d\"") || payloadString.Contains("\"ts\""))    // Ignore message sent by MQTT broker, which causes a JsonException
+                return;
+
+            var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(payloadString);
+            var arduinoId = payload.GetValueOrDefault("id", "unknown");
+
             if (e.ApplicationMessage.Topic == "status")
             {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment));
-                    var arduinoId = payload.GetValueOrDefault("id", "unknown");
-                    var status = payload.GetValueOrDefault("status", "unknown");
+                var status = payload.GetValueOrDefault("status", "unknown");
 
-                    if (status == "online")
-                    {
-                        HandleArduinoOnline(arduinoId);
-                    }
-                    else if (status == "offline")
-                    {
-                        HandleArduinoOffline(arduinoId);
-                    }
-                });
+                if (status == "online")
+                    HandleArduinoOnline(arduinoId);
+
+                else if (status == "offline")
+                    HandleArduinoOffline(arduinoId);
             }
 
             else if (e.ApplicationMessage.Topic == "sensors/temperature")
             {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment));
-                    var arduinoId = payload.GetValueOrDefault("id", "unknown");
-                    var temperature = payload.GetValueOrDefault("temp", "unknown");
-
-                    WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
-                });
+                var temperature = payload.GetValueOrDefault("temp", "unknown");
+                WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
             }
+        });
 
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
+    }
 
-        private void HandleArduinoOnline(string arduinoId)
+    private void HandleArduinoOnline(string arduinoId)
+    {
+        statusLabel.Text = "Arduino connected! Please wait...";
+
+        if (Application.Current.MainPage is MainPage mainPage)
         {
-            statusLabel.Text = "Arduino connected! Please wait...";
+            if (mainPage.Devices == null)
+                mainPage.Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice>();
 
-            if (Application.Current.MainPage is MainPage mainPage)
+            var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
+
+            if (device == null) // If Arduino is not in the list, add it
             {
-                if (mainPage.Devices == null)
-                    mainPage.Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice>();
-
-                var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
-
-                if (device == null) // If Arduino is not in the list, add it
-                {
-                    device = new ArduinoDevice { Id = arduinoId, Status = "Online" };
-                    mainPage.Devices.Add(device);
-                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device));
-                }
-                else // If Arduino is in the list, update its status
-                {
-                    device.Status = "Online";
-                    WeakReferenceMessenger.Default.Send(new StatusUpdateMessage(arduinoId, "Online"));
-                }
+                device = new ArduinoDevice { Id = arduinoId, Status = "Online" };
+                mainPage.Devices.Add(device);
+                mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device));
             }
-
-            else if (Application.Current.MainPage is NavigationPage navPage &&
-             navPage.CurrentPage is ConnectionPage)
+            else // If Arduino is in the list, update its status
             {
-                var device = new ArduinoDevice
-                {
-                    Id = arduinoId,
-                    Status = "Online"
-                };
-
-                var newMainPage = new MainPage
-                {
-                    Detail = new NavigationPage(new ArduinoTabbedPage(device))
-                };
-
-                newMainPage.Devices.Add(device);
-
-                Application.Current.MainPage = newMainPage;
+                device.Status = "Online";
+                WeakReferenceMessenger.Default.Send(new StatusUpdateMessage(arduinoId, "Online"));
             }
         }
 
-        private void HandleArduinoOffline(string arduinoId)
+        else if (Application.Current.MainPage is NavigationPage navPage &&
+            navPage.CurrentPage is ConnectionPage)
         {
-            if (Application.Current?.MainPage is MainPage mainPage)
+            var device = new ArduinoDevice
             {
-                var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
+                Id = arduinoId,
+                Status = "Online"
+            };
 
-                if (device != null)
-                {
-                    device.Status = "Offline";
-                    WeakReferenceMessenger.Default.Send(new StatusUpdateMessage(device.Id, "Offline"));
-                }
-
-                if (mainPage.Devices.All(d => d.Status == "Offline"))
-                    ShowReconnectionAlert();
-            }
-        }
-
-        private async void ShowReconnectionAlert()
-        {
-            bool reconnected = false;
-
-            // Loop until an Arduino reconnects
-            while (!reconnected)
+            var newMainPage = new MainPage
             {
-                // Show the alert and wait for user acknowledgment
-                await (Application.Current.MainPage).DisplayAlert(
-                    "Connection Lost",
-                    "No Arduinos connected. Reconnecting...",
-                    "OK"
-                );
+                Detail = new NavigationPage(new ArduinoTabbedPage(device))
+            };
 
-                // Check if at least one Arduino has reconnected
-                if (Application.Current.MainPage is MainPage mainPage && mainPage.Devices.Any(s => s.Status == "Online"))
-                {
-                    reconnected = true;
-                }
-            }
+            newMainPage.Devices.Add(device);
+
+            Application.Current.MainPage = newMainPage;
         }
+    }
 
-        public async Task PublishMessageAsync(string message, string topic)
+    private void HandleArduinoOffline(string arduinoId)
+    {
+        if (Application.Current?.MainPage is MainPage mainPage)
         {
-            var mqttMessage = new MqttApplicationMessageBuilder()
-                .WithTopic(topic)
-                .WithPayload(message)
-                .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
-                .Build();
+            var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
 
-            await mqttClient.PublishAsync(mqttMessage);
+            if (device != null)
+            {
+                device.Status = "Offline";
+                WeakReferenceMessenger.Default.Send(new StatusUpdateMessage(device.Id, "Offline"));
+            }
+
+            if (mainPage.Devices.All(d => d.Status == "Offline"))
+                ShowReconnectionAlert();
         }
+    }
+
+    private async void ShowReconnectionAlert()
+    {
+        bool reconnected = false;
+
+        // Loop until an Arduino reconnects
+        while (!reconnected)
+        {
+            await (Application.Current.MainPage).DisplayAlert(
+                "Connection Lost",
+                "No Arduinos connected. Reconnecting...",
+                "OK"
+            );
+
+            if (Application.Current.MainPage is MainPage mainPage && mainPage.Devices.Any(s => s.Status == "Online"))
+                reconnected = true;
+        }
+    }
+
+    public async Task PublishMessageAsync(string message, string topic)
+    {
+        var mqttMessage = new MqttApplicationMessageBuilder()
+            .WithTopic(topic)
+            .WithPayload(message)
+            .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce)
+            .Build();
+
+        await mqttClient.PublishAsync(mqttMessage);
     }
 }
