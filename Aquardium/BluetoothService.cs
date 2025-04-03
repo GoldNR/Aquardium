@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Maui.Controls;
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
@@ -13,7 +14,7 @@ namespace Aquardium;
 
 public class BluetoothService
 {
-    private readonly IAdapter _adapter;
+    private static IAdapter _adapter;
     private readonly Label statusLabel;
     private readonly Button reconnectButton;
 
@@ -70,7 +71,7 @@ public class BluetoothService
                 {
                     device = new ArduinoDevice { Id = e.Device.Name, Status = "Connected" };
                     mainPage.Devices.Add(device);
-                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device));
+                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH", ref e.Device));
                 }
                 else // If Arduino is in the list, update its status
                 {
@@ -90,7 +91,8 @@ public class BluetoothService
 
                 var newMainPage = new MainPage
                 {
-                    Detail = new NavigationPage(new ArduinoTabbedPage(device))
+                    connectionMode = "BLUETOOTH",
+                    Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH", ref e.Device))
                 };
 
                 newMainPage.Devices.Add(device);
@@ -144,14 +146,16 @@ public class BluetoothService
     private async Task SubscribeToDataAsync(IDevice device)
     {
         var services = await device.GetServicesAsync();
+        Console.WriteLine($"Found {services.Count} services for device {device.Name}.");
 
         foreach (var service in services)
         {
-            var tempCharacteristic = await service.GetCharacteristicAsync(Guid.Parse("00002a6e-0000-1000-8000-00805f9b34fb"));  // Temperature Characteristic UUID
+            Console.WriteLine($"Service: {service.Id}");
+            var tempCharacteristic = await service.GetCharacteristicAsync(Guid.Parse("00002a6e-0000-1000-8000-00805f9b34fb"));
 
             if (tempCharacteristic == null)
             {
-                Console.WriteLine("Failed to find characteristic.");
+                Console.WriteLine("Failed to find temperature characteristic.");
                 continue;
             }
 
@@ -164,6 +168,49 @@ public class BluetoothService
             };
 
             await tempCharacteristic.StartUpdatesAsync();
+            Console.WriteLine("Started updates for temperature characteristic.");
+        }
+    }
+
+    public static async Task SendMessageAsync(string message, IDevice device, string characteristicGuid)
+    {
+        var services = await device.GetServicesAsync();
+
+        Console.WriteLine($"Sending BT data: Found {services.Count} services for device {device.Name}.");
+
+        foreach (var service in services)
+        {
+            Console.WriteLine($"Service: {service.Id}");
+            var characteristics = await service.GetCharacteristicsAsync();
+            Console.WriteLine($"Sending BT data: Found {characteristics.Count} characteristics for service {service.Id}.");
+            foreach (var characteristic in characteristics)
+            {
+                Console.WriteLine($"Characteristic: {characteristic.Id}");
+            }
+
+            var characteristicToWrite = characteristics.FirstOrDefault(c => c.Id == Guid.Parse(characteristicGuid));
+            if (characteristicToWrite == null)
+            {
+                Console.WriteLine("Characteristic to write not found!");
+                await Application.Current.MainPage.DisplayAlert("Error", "Characteristic to write not found!", "OK");
+                continue; //CONTINUE WORKING ON THIS
+            }
+
+            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    await characteristicToWrite.WriteAsync(messageBytes);
+                    Console.WriteLine($"Sent message: {message}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error writing to characteristic: {ex.Message}");
+                    await Application.Current.MainPage.DisplayAlert("Error", $"Error writing to characteristic: {ex.Message}", "OK");
+                }
+            });
         }
     }
 }

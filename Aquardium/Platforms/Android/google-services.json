@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1090327216901",
+    "project_id": "aquardium-push-notif",
+    "storage_bucket": "aquardium-push-notif.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1090327216901:android:90c543358824386832ed6c",
+        "android_client_info": {
+          "package_name": "com.companyname.aquardium"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9-IlZ6V_DgM0SgvTcViypMwg9uBATrbM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

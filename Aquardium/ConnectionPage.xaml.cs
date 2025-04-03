@@ -34,7 +34,7 @@ public partial class ConnectionPage : ContentPage
 
 	private void OnReconnectClicked(object sender, EventArgs e)
     {
-        CheckConnection();
         ReconnectButton.IsEnabled = false;
+        CheckConnection();
     }
 }

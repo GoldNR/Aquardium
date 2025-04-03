@@ -16,7 +16,7 @@
                FontSize="15"
                HorizontalOptions="Center"
                VerticalOptions="Center"
-                HorizontalTextAlignment="Center"/>
+               HorizontalTextAlignment="Center"/>
 
             <Button
                 x:Name="ReconnectButton"

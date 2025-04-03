@@ -1,10 +1,9 @@
-﻿namespace Aquardium
+﻿namespace Aquardium;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell()
     {
-        public AppShell()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();      // APP DOES NOT USE SHELL, SO THIS FILE IS NOT NEEDED
     }
 }

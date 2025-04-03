@@ -58,11 +58,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="FirebaseDatabase.net" Version="4.2.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
 		<PackageReference Include="MQTTnet" Version="4.3.7.1207" />
 		<PackageReference Include="Plugin.BLE" Version="3.1.0" />
+		<PackageReference Include="Plugin.Firebase.CloudMessaging" Version="3.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -70,5 +72,10 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-ios'">
+  	  <BundleResource Include="Platforms\iOS\GoogleService-Info.plist" />
+	</ItemGroup>
+
 
 </Project>

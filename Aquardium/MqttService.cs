@@ -13,10 +13,10 @@ namespace Aquardium;
 
 public class MqttService
 {
-    private readonly IMqttClient mqttClient;
+    private static IMqttClient mqttClient;
     private MqttClientOptions mqttOptions;
-    private readonly Label statusLabel;
-    private readonly Button reconnectButton;
+    private Label statusLabel;
+    private Button reconnectButton;
 
     public MqttService(Label statusLabel, Button reconnectButton)
     {
@@ -26,7 +26,7 @@ public class MqttService
         mqttClient = new MqttFactory().CreateMqttClient();
         mqttOptions = new MqttClientOptionsBuilder()
             .WithClientId("Aquardium")
-            .WithTcpServer("broker.hivemq.com", 1883)
+            .WithTcpServer("mqtt.eclipseprojects.io", 1883)
             .WithCleanSession()
             .Build();
         mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
@@ -74,6 +74,8 @@ public class MqttService
 
             if (payloadString.Contains("\"d\"") || payloadString.Contains("\"ts\""))    // Ignore message sent by MQTT broker, which causes a JsonException
                 return;
+            else if (!payloadString.StartsWith("{") && !payloadString.EndsWith("}"))
+                return;
 
             var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(payloadString);
             var arduinoId = payload.GetValueOrDefault("id", "unknown");
@@ -114,7 +116,7 @@ public class MqttService
             {
                 device = new ArduinoDevice { Id = arduinoId, Status = "Online" };
                 mainPage.Devices.Add(device);
-                mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device));
+                mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, "WIFI"));
             }
             else // If Arduino is in the list, update its status
             {
@@ -134,7 +136,8 @@ public class MqttService
 
             var newMainPage = new MainPage
             {
-                Detail = new NavigationPage(new ArduinoTabbedPage(device))
+                connectionMode = "WIFI",
+                Detail = new NavigationPage(new ArduinoTabbedPage(device, "WIFI"))
             };
 
             newMainPage.Devices.Add(device);
@@ -178,7 +181,7 @@ public class MqttService
         }
     }
 
-    public async Task PublishMessageAsync(string message, string topic)
+    public static async Task PublishMessageAsync(string message, string topic)
     {
         var mqttMessage = new MqttApplicationMessageBuilder()
             .WithTopic(topic)
