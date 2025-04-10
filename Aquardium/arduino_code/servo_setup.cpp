@@ -6,12 +6,13 @@ WiFiUDP Udp;
 NTPClient timeClient(Udp, "time.google.com", 8 * 3600);
 Servo servo;
 
-int targetHour, targetMinute, pos;
+int targetHour, targetMinute, pos, centerPos = 90;
 bool hasRotatedForTheDay;
 
 void servoSetup() {
   servo.attach(SERVO_PIN);
   RTC.begin();
+  servo.write(centerPos);
 
   timeClient.begin();
 }
@@ -24,14 +25,44 @@ void servoLoop() {
   targetMinute = (int) EEPROM.read(1);
 
   if (timeClient.getHours() == targetHour && timeClient.getMinutes() == targetMinute && hasRotatedForTheDay == false) {
-    for (pos = 0; pos <= 180; pos += 1) {
-      servo.write(pos);
-      delay(15);
-    }
-    for (pos = 180; pos >= 0; pos -= 1) {
-      servo.write(pos);
-      delay(15);
-    }
+    servo.write(centerPos + 90);
+    delay(500);
+
+    servo.write(centerPos);
+    delay(500);
+    
+    servo.write(centerPos - 90);
+    delay(500);
+
+    servo.write(centerPos - 180);
+    delay(500); 
+
+    servo.write(centerPos + 90);
+    delay(500); 
+
+    servo.write(centerPos);
+    delay(500);
+
+    //
+
+    servo.write(centerPos + 90);
+    delay(500);
+
+    servo.write(centerPos);
+    delay(500);
+    
+    servo.write(centerPos - 90);
+    delay(500);
+
+    servo.write(centerPos - 180);
+    delay(500); 
+
+    servo.write(centerPos + 90);
+    delay(500); 
+
+    servo.write(centerPos);
+    delay(500);
+
     hasRotatedForTheDay = true;
   }
 

@@ -4,6 +4,8 @@
 #include "temperature_setup.h"
 #include "ultrasonic_setup.h"
 #include "servo_setup.h"
+#include "turbidity_setup.h"
+// TAKEN DIGITAL PINS: 2, 6, 7, 9
 
 const String deviceID PROGMEM = "arduino-1";          //Rename with an available name, must contain "arduino"
 
@@ -17,6 +19,7 @@ void setup() {
   tempSetup();
   ussSetup();
   servoSetup();
+  turbiditySetup();
 }
 
 void loop() {
@@ -26,5 +29,6 @@ void loop() {
   tempLoop();
   ussLoop();
   servoLoop();
+  turbidityLoop();
   delay(5000);
 }

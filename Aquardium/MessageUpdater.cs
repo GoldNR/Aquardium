@@ -19,3 +19,9 @@ public class TemperatureUpdateMessage : ValueChangedMessage<(string ArduinoId, s
     public TemperatureUpdateMessage(string arduinoId, string temperature)
     : base((arduinoId, temperature)) {}
 }
+
+public class TurbidityUpdateMessage : ValueChangedMessage<(string ArduinoId, string Turbidity)>
+{
+    public TurbidityUpdateMessage(string arduinoId, string turbidity)
+    : base((arduinoId, turbidity)) {}
+}

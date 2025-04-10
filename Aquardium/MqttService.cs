@@ -53,6 +53,7 @@ public class MqttService
                 {
                     await mqttClient.SubscribeAsync("status");
                     await mqttClient.SubscribeAsync("sensors/temperature");
+                    await mqttClient.SubscribeAsync("sensors/turbidity");
                 }
             }
         }
@@ -95,6 +96,12 @@ public class MqttService
             {
                 var temperature = payload.GetValueOrDefault("temp", "unknown");
                 WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
+            }
+
+            else if (e.ApplicationMessage.Topic == "sensors/turbidity")
+            {
+                var turbidity = payload.GetValueOrDefault("turbidity", "unknown");
+                WeakReferenceMessenger.Default.Send(new TurbidityUpdateMessage(arduinoId, turbidity));
             }
         });
 

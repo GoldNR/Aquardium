@@ -1,5 +1,8 @@
 #include "wifi_setup.h"
 #include "temperature_setup.h"
+#include "turbidity_setup.h"
+//CodeJust
+//J09295550934j
 
 #define SSID "04FA_767de0"
 #define PASSWORD "wlan89821f"
@@ -65,7 +68,9 @@ void wifiLoop() {
 
     tempMessage = "{\"id\":\"" + deviceID + "\",\"temp\":\"" + tempReading + "\"}";
     client.publish("sensors/temperature", tempMessage.c_str());
-    //Serial.println(tempMessage);
+
+    turbMessage = "{\"id\":\"" + deviceID + "\",\"turbidity\":\"" + turbReading + "\"}";
+    client.publish("sensors/turbidity", turbMessage.c_str());
 
     client.loop();
   }
