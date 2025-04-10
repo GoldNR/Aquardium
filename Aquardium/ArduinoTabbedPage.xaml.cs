@@ -62,6 +62,35 @@ public partial class ArduinoTabbedPage : TabbedPage
             if (message.Value.ArduinoId == Device.Id)
                 TemperatureValue.Text = message.Value.Temperature == "-127.00" ? "Sensor disconnected" : $"{message.Value.Temperature} °C";
         });
+        WeakReferenceMessenger.Default.Register<TurbidityUpdateMessage>(this, (recipient, message) =>
+        {
+            int sensorValue = int.Parse(message.Value.Turbidity);
+            if (sensorValue <= 1023 && sensorValue >= 800)
+            {
+                TurbidityValue.Text = "Clear";
+                TurbidityValue.TextColor = Colors.Green;
+            }
+            else if (sensorValue <= 799 && sensorValue >= 600)
+            {
+                TurbidityValue.Text = "Mildly Cloudy";
+                TurbidityValue.TextColor = Colors.Yellow;
+            }
+            else if (sensorValue <= 599 && sensorValue >= 300)
+            {
+                TurbidityValue.Text = "Cloudy";
+                TurbidityValue.TextColor = Colors.Orange;
+            }
+            else if (sensorValue <= 299 && sensorValue >= 0)
+            {
+                TurbidityValue.Text = "Very Cloudy";
+                TurbidityValue.TextColor = Colors.Red;
+            }
+            else
+            {
+                TurbidityValue.Text = "Sensor disconnected";
+                TurbidityValue.TextColor = Colors.Gray;
+            }
+        });
     }
 
     protected override void OnDisappearing()
@@ -69,6 +98,7 @@ public partial class ArduinoTabbedPage : TabbedPage
         base.OnDisappearing();
         WeakReferenceMessenger.Default.Unregister<StatusUpdateMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TemperatureUpdateMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<TurbidityUpdateMessage>(this);
     }
 
     private void HourEntry_TextChanged(object sender, TextChangedEventArgs e)

@@ -13,6 +13,7 @@ extern NTPClient timeClient;
 extern int targetHour;
 extern int targetMinute;
 extern int pos;
+extern int centerPos;
 extern bool hasRotatedForTheDay;
 
 void servoSetup();

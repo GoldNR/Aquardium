@@ -13,5 +13,6 @@ extern const String deviceID;
 
 void bleSetup();
 void bleLoop();
+void onServoCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic);
 
 #endif

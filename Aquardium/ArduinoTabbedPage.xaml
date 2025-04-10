@@ -13,8 +13,12 @@
                         <Label  Text="{Binding Status}"     FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="StatusValue"/>
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="Temperature:" FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="-- &#176;C"   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TemperatureValue"/>
+                        <Label  Text="Temperature:"         FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                        <Label  Text="-- &#176;C"           FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TemperatureValue"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                        <Label  Text="Water Quality:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                        <Label  Text="-- &#176;C"           FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"/>
                     </Grid>
                 </VerticalStackLayout>
             </ScrollView>
