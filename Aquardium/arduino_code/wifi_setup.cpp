@@ -6,7 +6,7 @@
 //J09295550934j
 
 #define SSID "04FA_767de0"
-#define PASSWORD "babolfamily2023"
+#define PASSWORD ""
 #define MQTT_SERVER "broker.hivemq.com"
 
 WiFiClient espClient;
