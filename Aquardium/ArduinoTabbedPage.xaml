@@ -7,7 +7,7 @@
         <!-- Sensors tab -->
         <ContentPage Title="Sensors">
             <ScrollView>
-                <VerticalStackLayout Padding="20">
+                <VerticalStackLayout Padding="20" Spacing="20">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Status:"              FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
                         <Label  Text="{Binding Status}"     FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="StatusValue"/>
@@ -18,7 +18,11 @@
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Water Quality:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="-- &#176;C"           FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"/>
+                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                        <Label  Text="Time Last Fed:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TimeValue"/>
                     </Grid>
                 </VerticalStackLayout>
             </ScrollView>
@@ -27,7 +31,7 @@
         <!-- Controls tab -->
         <ContentPage Title="Controls">
             <ScrollView>
-                <VerticalStackLayout Padding="20">
+                <VerticalStackLayout Padding="20" Spacing="20">
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Simulate Arduino"      FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
                         <Button Text="Simulate Arduino"      FontSize="16"       Grid.Column="1"     VerticalOptions="Center" Clicked="OnSimulateArduino"/>
@@ -38,26 +42,14 @@
                            FontSize="16"
                            VerticalOptions="Center"
                            Grid.Column="0"/>
-                        <Entry
-                           x:Name="HourEntry"
-                           Placeholder="HH"
-                           Keyboard="Numeric"
-                           MaxLength="2"
-                           WidthRequest="50"
-                           TextChanged="HourEntry_TextChanged"
-                           Grid.Column="1"/>
-                        <Entry
-                           x:Name="MinuteEntry"
-                           Placeholder="MM"
-                           Keyboard="Numeric"
-                           MaxLength="2"
-                           WidthRequest="50"
-                           TextChanged="MinuteEntry_TextChanged"
-                           Grid.Column="2"/>
                         <Button 
-                           Text="Save"
-                           Clicked="OnSaveFeederTime"
+                           Text="Set Feed Time"
+                           Clicked="OnSetFeederTimeClicked"
                            Grid.Column="3"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                        <Label  Text="Feed Now"      FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                        <Button Text="Feed Now"      FontSize="16"       Grid.Column="1"     VerticalOptions="Center" Clicked="OnFeedNowClicked"/>
                     </Grid>
                 </VerticalStackLayout>
             </ScrollView>

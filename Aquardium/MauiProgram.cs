@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 using Plugin.Firebase.CloudMessaging;
+using CommunityToolkit.Maui;
 #if IOS
 using Plugin.Firebase.Core.Platforms.iOS;
 #elif ANDROID
@@ -17,6 +18,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .RegisterFirebaseServices()
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

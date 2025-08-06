@@ -1,22 +1,31 @@
 #include "ble_setup.h"
 #include "temperature_setup.h"
+#include "turbidity_setup.h"
+#include "servo_setup.h"
 
-BLEService service("00001809-0000-1000-8000-00805f9b34fb"); 
-BLECharacteristic tempCharacteristic("00002a6e-0000-1000-8000-00805f9b34fb", BLERead | BLENotify, 20);
-BLECharacteristic servoCharacteristic("00002a6f-0000-1000-8000-00805f9b34fb", BLERead | BLEWrite | BLENotify, 100);
+BLEService service("12345678-1234-5678-1234-56789abcdef0"); 
+BLECharacteristic tempCharacteristic("12345678-1234-5678-1234-56789abcdef1", BLENotify, 10);
+BLECharacteristic turbidityCharacteristic("12345678-1234-5678-1234-56789abcdef2", BLENotify, 10);
+BLECharacteristic servoCharacteristic("12345678-1234-5678-1234-56789abcdef3", BLEWrite, 30);
+BLECharacteristic feedNowCharacteristic("12345678-1234-5678-1234-56789abcdef4", BLEWrite, 5);
+BLECharacteristic timeLastFedCharacteristic("12345678-1234-5678-1234-56789abcdef5", BLENotify, 20);
 BLEDevice central;
 
 void bleSetup() {
+  BLE.setLocalName(deviceID.c_str());
+  BLE.setDeviceName(deviceID.c_str());
   while (!BLE.begin()) {
     Serial.println("Starting...");
     delay(1000);
   }
-  BLE.setLocalName(deviceID.c_str());
-  BLE.setDeviceName(deviceID.c_str());
-  service.addCharacteristic(servoCharacteristic);
-  service.addCharacteristic(tempCharacteristic);
-  servoCharacteristic.setEventHandler(BLEWritten, onServoCharacteristicWritten);
   BLE.setAdvertisedService(service);
+  service.addCharacteristic(servoCharacteristic);
+  service.addCharacteristic(turbidityCharacteristic);
+  service.addCharacteristic(tempCharacteristic);
+  service.addCharacteristic(feedNowCharacteristic);
+  service.addCharacteristic(timeLastFedCharacteristic);
+  servoCharacteristic.setEventHandler(BLEWritten, onServoCharacteristicWritten);
+  feedNowCharacteristic.setEventHandler(BLEWritten, onFeedNowCharacteristicWritten);
   BLE.addService(service);
   BLE.advertise();
 }
@@ -26,6 +35,8 @@ void bleLoop() {
   central = BLE.central();
   if (central && central.connected()) {
     tempCharacteristic.writeValue(tempReading.c_str(), false);
+    turbidityCharacteristic.writeValue(turbReading.c_str(), false);
+    timeLastFedCharacteristic.writeValue(timeLastFed.c_str(), false);
   }
 }
 
@@ -55,4 +66,8 @@ void onServoCharacteristicWritten(BLEDevice central, BLECharacteristic character
   Serial.print(hour);
   Serial.print(":");
   Serial.println(minute);
+}
+
+void onFeedNowCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
+  rotateServo();
 }

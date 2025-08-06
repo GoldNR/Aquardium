@@ -1,30 +1,33 @@
 #include "wifi_setup.h"
 #include "temperature_setup.h"
 #include "turbidity_setup.h"
+#include "servo_setup.h"
 //CodeJust
 //J09295550934j
 
 #define SSID "04FA_767de0"
-#define PASSWORD "wlan89821f"
-#define MQTT_SERVER "mqtt.eclipseprojects.io"
+#define PASSWORD "babolfamily2023"
+#define MQTT_SERVER "broker.hivemq.com"
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient client(espClient); 
 
 const String isOnlineMessage PROGMEM = "{\"id\":\"" + deviceID + "\",\"status\":\"online\"}";
 const String willMessageStr PROGMEM = "{\"id\":\"" + deviceID + "\",\"status\":\"offline\"}";
-const String servoTopic PROGMEM = deviceID + "/servo";
+const String servoTimeTopic PROGMEM = deviceID + "/servo";
+const String rotateNowTopic PROGMEM = deviceID + "/now";
 
 void reconnect() {
   if (client.connect(deviceID.c_str(), "status", 0, true, willMessageStr.c_str())) {
-    client.subscribe(servoTopic.c_str());
+    client.subscribe(servoTimeTopic.c_str());
+    client.subscribe(rotateNowTopic.c_str());
     Serial.println(isOnlineMessage.c_str());
     Serial.println("Connected to MQTT broker.");
   } else Serial.println("Connecting...");
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  if (strcmp(topic, servoTopic.c_str()) == 0) {
+  if (strcmp(topic, servoTimeTopic.c_str()) == 0) {
     StaticJsonDocument<100> doc;
 
     char jsonString[length + 1];
@@ -52,6 +55,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print(":");
     Serial.println(minute);
   }
+
+  else if (strcmp(topic, rotateNowTopic.c_str()) == 0) {
+    rotateServo();
+  }
 }
 
 void wifiSetup() {
@@ -71,6 +78,9 @@ void wifiLoop() {
 
     turbMessage = "{\"id\":\"" + deviceID + "\",\"turbidity\":\"" + turbReading + "\"}";
     client.publish("sensors/turbidity", turbMessage.c_str());
+
+    timeLastFedMessage = "{\"id\":\"" + deviceID + "\",\"timeLastFed\":\"" + timeLastFed + "\"}";
+    client.publish("sensors/timeLastFed", timeLastFedMessage.c_str());
 
     client.loop();
   }

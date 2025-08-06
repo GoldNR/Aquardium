@@ -9,5 +9,4 @@ void turbiditySetup() {}
 void turbidityLoop() {
   turbValue = analogRead(A0);
   turbReading = String(turbValue);
-  Serial.println(turbValue);
 }

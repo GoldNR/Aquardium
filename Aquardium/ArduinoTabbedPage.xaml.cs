@@ -1,7 +1,10 @@
+using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Extensions;
+using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Platform;
-using Plugin.BLE.Abstractions.Contracts;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace Aquardium;
 
@@ -9,7 +12,6 @@ public partial class ArduinoTabbedPage : TabbedPage
 {
     private ArduinoDevice Device { get; set; }
     private string connectionMode;
-    private IDevice device;
 
     public ArduinoTabbedPage(ArduinoDevice device, string connectionMode)
 	{
@@ -26,22 +28,6 @@ public partial class ArduinoTabbedPage : TabbedPage
             StatusValue.TextColor = Colors.Red;
     }
 
-    public ArduinoTabbedPage(ArduinoDevice device, string connectionMode, ref IDevice arduino_i)
-    {
-        InitializeComponent();
-        Device = device;
-        BindingContext = Device;
-        Title = device.Id;
-        this.connectionMode = connectionMode;
-        this.device = arduino_i;
-
-        if (Device.Status == "Online" || Device.Status == "Connected")
-            StatusValue.TextColor = Colors.Green;
-
-        else if (Device.Status == "Offline" || Device.Status == "Disconnected")
-            StatusValue.TextColor = Colors.Red;
-    }
-
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -49,13 +35,15 @@ public partial class ArduinoTabbedPage : TabbedPage
         WeakReferenceMessenger.Default.Register<StatusUpdateMessage>(this, (recipient, message) =>
         {
             if (message.Value.ArduinoId == Device.Id)
+            {
                 StatusValue.Text = message.Value.Status;
 
-            if (Device.Status == "Online" || Device.Status == "Connected")
-                StatusValue.TextColor = Colors.Green;
+                if (Device.Status == "Online" || Device.Status == "Connected")
+                    StatusValue.TextColor = Colors.Green;
 
-            else if (Device.Status == "Offline" || Device.Status == "Disconnected")
-                StatusValue.TextColor = Colors.Red;
+                else if (Device.Status == "Offline" || Device.Status == "Disconnected")
+                    StatusValue.TextColor = Colors.Red;
+            }
         });
         WeakReferenceMessenger.Default.Register<TemperatureUpdateMessage>(this, (recipient, message) =>
         {
@@ -91,6 +79,13 @@ public partial class ArduinoTabbedPage : TabbedPage
                 TurbidityValue.TextColor = Colors.Gray;
             }
         });
+        WeakReferenceMessenger.Default.Register<TimeLastFedUpdateMessage>(this, (recipient, message) =>
+        {
+            if (message.Value.ArduinoId == Device.Id)
+            {
+                TimeValue.Text = message.Value.TLF == "0/0/0 0:0" ? "RTC Module disconnected" : $"{message.Value.TLF}";
+            }
+        });
     }
 
     protected override void OnDisappearing()
@@ -99,45 +94,57 @@ public partial class ArduinoTabbedPage : TabbedPage
         WeakReferenceMessenger.Default.Unregister<StatusUpdateMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TemperatureUpdateMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TurbidityUpdateMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<TimeLastFedUpdateMessage>(this);
     }
 
-    private void HourEntry_TextChanged(object sender, TextChangedEventArgs e)
+    private async void OnSetFeederTimeClicked(object sender, EventArgs e)
     {
-        if (!int.TryParse(e.NewTextValue, out int value) || value < 0 || value > 23)
+        var jsonResult = await this.ShowPopupAsync<string>(new FeederTimePopup());
+        if (jsonResult.Result != null)
         {
-            ((Entry)sender).Text = "";
-        }
-    }
+            var result = JsonSerializer.Deserialize<Dictionary<string, int>>(jsonResult.Result);
+            int hour = result["Hour"];
+            int minute = result["Minute"];
 
-    private void MinuteEntry_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (!int.TryParse(e.NewTextValue, out int value) || value < 0 || value > 59)
-        {
-            ((Entry)sender).Text = "";
-        }
-    }
-
-    private async void OnSaveFeederTime(object sender, EventArgs e)
-    {
-        int hour = int.Parse(HourEntry.Text), minute = int.Parse(MinuteEntry.Text);
-        if (hour >= 0 && hour <= 23 &&
-            minute >= 0 && minute <= 59)
-        {
             bool isConfirmed = await DisplayAlert("Confirm", $"Set feeder time to {hour:D2}:{minute:D2}?", "Yes", "Cancel");
 
             if (isConfirmed)
             {
-                String message = "{\"id\":\"" + $"{Device.Id}" + "\",\"hour\":\"" + $"{hour:D2}" + "\",\"minute\":\"" + $"{minute:D2}" + "\"}";
+                
                 if (connectionMode == "WIFI")
+                {
+                    String message = "{\"id\":\"" + $"{Device.Id}" + "\",\"hour\":\"" + $"{hour:D2}" + "\",\"minute\":\"" + $"{minute:D2}" + "\"}";
                     await MqttService.PublishMessageAsync(message, $"{Device.Id}/servo");
+                }
 
                 else if (connectionMode == "BLUETOOTH")
-                    await BluetoothService.SendMessageAsync(message, device, "00002a5c-0000-1000-8000-00805f9b34fb");
+                {
+                    String message = "{\"hour\":\"" + $"{hour:D2}" + "\",\"minute\":\"" + $"{minute:D2}" + "\"}";
+                    await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef3");
+                }
 
                 await DisplayAlert("Success", $"Feeder time set to {hour:D2}:{minute:D2}", "OK");
             }
         }
     }
+
+    private async void OnFeedNowClicked(object sender, EventArgs e)
+    {
+        bool isConfirmed = await DisplayAlert("Confirm", "Are you sure to feed now?", "Yes", "Cancel");
+        
+        if (isConfirmed) 
+        {
+            String message = " ";
+            if (connectionMode == "WIFI")
+                await MqttService.PublishMessageAsync(message, $"{Device.Id}/now");
+
+            else if (connectionMode == "BLUETOOTH")
+                await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef4");
+
+            await DisplayAlert("Success", "Feeder activated", "OK");
+        }
+    }
+
 
     private void OnSimulateArduino(object sender, EventArgs e)      // For simulating arduino
     {

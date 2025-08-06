@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Packets;
 using CommunityToolkit.Mvvm.Messaging;
 
 namespace Aquardium;
@@ -26,7 +21,7 @@ public class MqttService
         mqttClient = new MqttFactory().CreateMqttClient();
         mqttOptions = new MqttClientOptionsBuilder()
             .WithClientId("Aquardium")
-            .WithTcpServer("mqtt.eclipseprojects.io", 1883)
+            .WithTcpServer("broker.hivemq.com", 1883)
             .WithCleanSession()
             .Build();
         mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
@@ -54,6 +49,7 @@ public class MqttService
                     await mqttClient.SubscribeAsync("status");
                     await mqttClient.SubscribeAsync("sensors/temperature");
                     await mqttClient.SubscribeAsync("sensors/turbidity");
+                    await mqttClient.SubscribeAsync("sensors/timeLastFed");
                 }
             }
         }
@@ -71,15 +67,27 @@ public class MqttService
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            var payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+            string payloadString;
+            Dictionary<string, string> payload;
+            string arduinoId;
 
-            if (payloadString.Contains("\"d\"") || payloadString.Contains("\"ts\""))    // Ignore message sent by MQTT broker, which causes a JsonException
-                return;
-            else if (!payloadString.StartsWith("{") && !payloadString.EndsWith("}"))
-                return;
+            try
+            {
+                payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
 
-            var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(payloadString);
-            var arduinoId = payload.GetValueOrDefault("id", "unknown");
+                /*if (payloadString.Contains("\"d\"") || payloadString.Contains("\"ts\""))    // Ignore message sent by MQTT broker, which causes a JsonException
+                    return;
+                else if (!payloadString.StartsWith("{") && !payloadString.EndsWith("}"))
+                    return;*/
+
+                payload = JsonSerializer.Deserialize<Dictionary<string, string>>(payloadString);
+                arduinoId = payload.GetValueOrDefault("id", "unknown");
+            }
+            catch (JsonException)
+            {
+                Console.WriteLine("Received invalid JSON payload.");
+                return;
+            }
 
             if (e.ApplicationMessage.Topic == "status")
             {
@@ -102,6 +110,12 @@ public class MqttService
             {
                 var turbidity = payload.GetValueOrDefault("turbidity", "unknown");
                 WeakReferenceMessenger.Default.Send(new TurbidityUpdateMessage(arduinoId, turbidity));
+            }
+
+            else if (e.ApplicationMessage.Topic == "sensors/timeLastFed")
+            {
+                var tlf = payload.GetValueOrDefault("timeLastFed", "unknown");
+                WeakReferenceMessenger.Default.Send(new TimeLastFedUpdateMessage(arduinoId, tlf));
             }
         });
 
@@ -174,7 +188,6 @@ public class MqttService
     {
         bool reconnected = false;
 
-        // Loop until an Arduino reconnects
         while (!reconnected)
         {
             await (Application.Current.MainPage).DisplayAlert(

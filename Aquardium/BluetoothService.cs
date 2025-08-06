@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Maui.Controls;
 using Plugin.BLE;
 using Plugin.BLE.Abstractions.Contracts;
 using Plugin.BLE.Abstractions.EventArgs;
@@ -17,6 +12,7 @@ public class BluetoothService
     private static IAdapter _adapter;
     private readonly Label statusLabel;
     private readonly Button reconnectButton;
+    private static Dictionary<string, IDevice> connectedDevices = new();
 
     public BluetoothService(Label statusLabel, Button reconnectButton)
     {
@@ -71,7 +67,8 @@ public class BluetoothService
                 {
                     device = new ArduinoDevice { Id = e.Device.Name, Status = "Connected" };
                     mainPage.Devices.Add(device);
-                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH", ref e.Device));
+                    connectedDevices.Add(e.Device.Name, e.Device);
+                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH"));
                 }
                 else // If Arduino is in the list, update its status
                 {
@@ -92,10 +89,11 @@ public class BluetoothService
                 var newMainPage = new MainPage
                 {
                     connectionMode = "BLUETOOTH",
-                    Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH", ref e.Device))
+                    Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH"))
                 };
 
                 newMainPage.Devices.Add(device);
+                connectedDevices.Add(e.Device.Name, e.Device);
 
                 Application.Current.MainPage = newMainPage;
             }
@@ -125,7 +123,6 @@ public class BluetoothService
     {
         bool reconnected = false;
 
-        // Loop until an Arduino reconnects
         while (!reconnected)
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
@@ -151,11 +148,18 @@ public class BluetoothService
         foreach (var service in services)
         {
             Console.WriteLine($"Service: {service.Id}");
-            var tempCharacteristic = await service.GetCharacteristicAsync(Guid.Parse("00002a6e-0000-1000-8000-00805f9b34fb"));
 
-            if (tempCharacteristic == null)
+            var characteristics = await service.GetCharacteristicsAsync();
+            var tempCharacteristic = characteristics
+                .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef1"));
+            var turbidityCharacteristic = characteristics
+                .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef2"));
+            var timeLastFedCharacteristic = characteristics
+                .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef5"));
+
+            if (tempCharacteristic == null || turbidityCharacteristic == null || timeLastFedCharacteristic == null)
             {
-                Console.WriteLine("Failed to find temperature characteristic.");
+                Console.WriteLine("Failed to find characteristics.");
                 continue;
             }
 
@@ -167,16 +171,33 @@ public class BluetoothService
                 });
             };
 
+            turbidityCharacteristic.ValueUpdated += (o, args) =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    WeakReferenceMessenger.Default.Send(new TurbidityUpdateMessage(device.Name, Encoding.UTF8.GetString(args.Characteristic.Value)));
+                });
+            };
+
+            timeLastFedCharacteristic.ValueUpdated += (o, args) =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    WeakReferenceMessenger.Default.Send(new TimeLastFedUpdateMessage(device.Name, Encoding.UTF8.GetString(args.Characteristic.Value)));
+                });
+            };
+
             await tempCharacteristic.StartUpdatesAsync();
-            Console.WriteLine("Started updates for temperature characteristic.");
+            await turbidityCharacteristic.StartUpdatesAsync();
+            await timeLastFedCharacteristic.StartUpdatesAsync();
         }
     }
 
-    public static async Task SendMessageAsync(string message, IDevice device, string characteristicGuid)
+    public static async Task SendMessageAsync(string deviceId, string message, string characteristicGuid)
     {
-        var services = await device.GetServicesAsync();
+        var services = await connectedDevices[deviceId].GetServicesAsync();
 
-        Console.WriteLine($"Sending BT data: Found {services.Count} services for device {device.Name}.");
+        Console.WriteLine($"Sending BT data: Found {services.Count} services for device {deviceId}.");
 
         foreach (var service in services)
         {
@@ -193,7 +214,7 @@ public class BluetoothService
             {
                 Console.WriteLine("Characteristic to write not found!");
                 await Application.Current.MainPage.DisplayAlert("Error", "Characteristic to write not found!", "OK");
-                continue; //CONTINUE WORKING ON THIS
+                continue;
             }
 
             byte[] messageBytes = Encoding.UTF8.GetBytes(message);
