@@ -14,9 +14,11 @@ extern const String isOnlineMessage PROGMEM;
 extern const String willMessageStr PROGMEM;
 extern const String servoTimeTopic PROGMEM;
 
+
 void reconnect();
 void callback(char* topic, byte* payload, unsigned int length);
 void wifiSetup();
 void wifiLoop();
+String readStringFromEEPROM(int addrOffset);
 
 #endif

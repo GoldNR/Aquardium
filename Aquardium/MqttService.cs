@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
 using MQTTnet;
-using MQTTnet.Client;
 using CommunityToolkit.Mvvm.Messaging;
 
 namespace Aquardium;
@@ -18,15 +17,13 @@ public class MqttService
         this.statusLabel = statusLabel;
         this.reconnectButton = reconnectButton;
         this.statusLabel.Text = "Connecting to Internet...";
-        mqttClient = new MqttFactory().CreateMqttClient();
+        mqttClient = new MqttClientFactory().CreateMqttClient();
         mqttOptions = new MqttClientOptionsBuilder()
             .WithClientId("Aquardium")
             .WithTcpServer("broker.hivemq.com", 1883)
             .WithCleanSession()
             .Build();
         mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
-
-        ConnectAsync();
     }
 
     public async Task ConnectAsync()
@@ -67,55 +64,46 @@ public class MqttService
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            string payloadString;
-            Dictionary<string, string> payload;
-            string arduinoId;
-
             try
             {
-                payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+                var payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(payloadString);
+                var arduinoId = payload.GetValueOrDefault("id", "unknown");
 
-                /*if (payloadString.Contains("\"d\"") || payloadString.Contains("\"ts\""))    // Ignore message sent by MQTT broker, which causes a JsonException
-                    return;
-                else if (!payloadString.StartsWith("{") && !payloadString.EndsWith("}"))
-                    return;*/
+                if (e.ApplicationMessage.Topic == "status")
+                {
+                    var status = payload.GetValueOrDefault("status", "unknown");
 
-                payload = JsonSerializer.Deserialize<Dictionary<string, string>>(payloadString);
-                arduinoId = payload.GetValueOrDefault("id", "unknown");
+                    if (status == "online")
+                        HandleArduinoOnline(arduinoId);
+
+                    else if (status == "offline")
+                        HandleArduinoOffline(arduinoId);
+                }
+
+                else if (e.ApplicationMessage.Topic == "sensors/temperature")
+                {
+                    var temperature = payload.GetValueOrDefault("temp", "unknown");
+                    WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
+                }
+
+                else if (e.ApplicationMessage.Topic == "sensors/turbidity")
+                {
+                    var turbidity = payload.GetValueOrDefault("turbidity", "unknown");
+                    WeakReferenceMessenger.Default.Send(new TurbidityUpdateMessage(arduinoId, turbidity));
+                }
+
+                else if (e.ApplicationMessage.Topic == "sensors/timeLastFed")
+                {
+                    var tlf = payload.GetValueOrDefault("timeLastFed", "unknown");
+                    WeakReferenceMessenger.Default.Send(new TimeLastFedUpdateMessage(arduinoId, tlf));
+                }
             }
+
             catch (JsonException)
             {
                 Console.WriteLine("Received invalid JSON payload.");
                 return;
-            }
-
-            if (e.ApplicationMessage.Topic == "status")
-            {
-                var status = payload.GetValueOrDefault("status", "unknown");
-
-                if (status == "online")
-                    HandleArduinoOnline(arduinoId);
-
-                else if (status == "offline")
-                    HandleArduinoOffline(arduinoId);
-            }
-
-            else if (e.ApplicationMessage.Topic == "sensors/temperature")
-            {
-                var temperature = payload.GetValueOrDefault("temp", "unknown");
-                WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
-            }
-
-            else if (e.ApplicationMessage.Topic == "sensors/turbidity")
-            {
-                var turbidity = payload.GetValueOrDefault("turbidity", "unknown");
-                WeakReferenceMessenger.Default.Send(new TurbidityUpdateMessage(arduinoId, turbidity));
-            }
-
-            else if (e.ApplicationMessage.Topic == "sensors/timeLastFed")
-            {
-                var tlf = payload.GetValueOrDefault("timeLastFed", "unknown");
-                WeakReferenceMessenger.Default.Send(new TimeLastFedUpdateMessage(arduinoId, tlf));
             }
         });
 

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    x:Class="Aquardium.WifiSetupPopup"
+    x:TypeArguments="x:String"
+    WidthRequest="275"
+    BackgroundColor="#2C2C2E"
+    Padding="20">
+
+    <VerticalStackLayout 
+        VerticalOptions="Center" 
+        HorizontalOptions="Center"
+        Padding="20"
+        Spacing="15"
+        WidthRequest="300">
+
+        <Label 
+            Text="WiFi Setup" 
+            FontSize="20"
+            FontAttributes="Bold"
+            HorizontalOptions="Center" />
+
+        <Entry 
+            x:Name="SsidEntry"
+            Placeholder="SSID" />
+
+        <Entry 
+            x:Name="PasswordEntry"
+            Placeholder="Password"
+            IsPassword="True" />
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Empty space filler -->
+            <BoxView
+                Grid.Column="0"
+                BackgroundColor="Transparent" />
+            
+            <!-- Cancel Button -->
+            <Button 
+                Text="Cancel" 
+                TextColor="White"
+                Clicked="OnCancelClicked" 
+                Grid.Column="1"
+                BackgroundColor="Transparent"
+                BorderColor="Transparent"
+                Padding="10,5" />
+
+            <!-- Save Button -->
+            <Button 
+                Text="Save"
+                TextColor="White"
+                Clicked="OnSaveClicked" 
+                Grid.Column="2"
+                BackgroundColor="Transparent"
+                BorderColor="Transparent"
+                Padding="10,5" />
+        </Grid>
+    </VerticalStackLayout>
+</toolkit:Popup>

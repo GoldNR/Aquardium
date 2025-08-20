@@ -5,7 +5,14 @@
 #include "ultrasonic_setup.h"
 #include "servo_setup.h"
 #include "turbidity_setup.h"
+
 // TAKEN DIGITAL PINS: 2, 6, 7, 9
+/* TAKEN EEPROM ADDRESSES:
+    1: Hour
+    2: Minute
+    3-33: Network SSID
+    34-97: Network Password
+*/
 
 const String deviceID PROGMEM = "arduino-1";          //Rename with an available name, must contain "arduino"
 
@@ -24,11 +31,19 @@ void setup() {
 
 void loop() {
   bleLoop();
+  BLEPoll();
   wifiLoop();
+
   //firebaseLoop();
+  BLEPoll();
   tempLoop();
+
+  BLEPoll();
   ussLoop();
+
+  BLEPoll();
   servoLoop();
+
+  BLEPoll();
   turbidityLoop();
-  delay(5000);
 }

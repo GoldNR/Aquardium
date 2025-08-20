@@ -15,4 +15,5 @@ void tempSetup() {
 void tempLoop() {
   tempSensor.requestTemperatures();
   tempReading = dtostrf(tempSensor.getTempCByIndex(0), 1, 2, tempBuffer);
+  Serial.println(tempReading.c_str());
 }

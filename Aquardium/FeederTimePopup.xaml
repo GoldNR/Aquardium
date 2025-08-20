@@ -5,11 +5,10 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Class="Aquardium.FeederTimePopup"
     x:TypeArguments="x:String"
-    WidthRequest="300"
+    WidthRequest="275"
     HeightRequest="200"
     Padding="20"
-    BackgroundColor="#2C2C2E"
-    >
+    BackgroundColor="#2C2C2E">
 
     <VerticalStackLayout Spacing="15">
         <Label Text="Set Feeder Time" FontSize="20" HorizontalOptions="Center" />
@@ -46,7 +45,7 @@
                 Text="Save"
                 TextColor="White"
                 Clicked="OnSaveClicked" 
-                Grid.Column="1"
+                Grid.Column="2"
                 BackgroundColor="Transparent"
                 BorderColor="Transparent"
                 Padding="10,5"
@@ -57,7 +56,7 @@
                 Text="Cancel" 
                 TextColor="White"
                 Clicked="OnCancelClicked" 
-                Grid.Column="2"
+                Grid.Column="1"
                 BackgroundColor="Transparent"
                 BorderColor="Transparent"
                 Padding="10,5"

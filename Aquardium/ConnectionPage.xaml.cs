@@ -15,15 +15,19 @@ public partial class ConnectionPage : ContentPage
         CheckConnection();
 	}
 
-	private void CheckConnection()
+	private async void CheckConnection()
 	{
-        if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet &&
-           (Connectivity.Current.ConnectionProfiles.Contains(ConnectionProfile.WiFi) ||
-            Connectivity.Current.ConnectionProfiles.Contains(ConnectionProfile.Ethernet)))
+        if (Connectivity.Current.NetworkAccess == NetworkAccess.Internet)
+        {
             mqttService = new MqttService(StatusLabel, ReconnectButton);
+            await mqttService.ConnectAsync();
+        }
 
         else if (CrossBluetoothLE.Current.IsOn)
+        {
             bluetoothService = new BluetoothService(StatusLabel, ReconnectButton);
+            bluetoothService.Connect();
+        }
 
         else
         {

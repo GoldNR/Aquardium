@@ -2,11 +2,7 @@
 #include "temperature_setup.h"
 #include "turbidity_setup.h"
 #include "servo_setup.h"
-//CodeJust
-//J09295550934j
 
-#define SSID "04FA_767de0"
-#define PASSWORD ""
 #define MQTT_SERVER "broker.hivemq.com"
 
 WiFiClient espClient;
@@ -16,8 +12,29 @@ const String isOnlineMessage PROGMEM = "{\"id\":\"" + deviceID + "\",\"status\":
 const String willMessageStr PROGMEM = "{\"id\":\"" + deviceID + "\",\"status\":\"offline\"}";
 const String servoTimeTopic PROGMEM = deviceID + "/servo";
 const String rotateNowTopic PROGMEM = deviceID + "/now";
+const String resetTopic PROGMEM = deviceID + "/reset";
+
+String readStringFromEEPROM(int addrOffset) {
+  char data[64];
+  int len = 0;
+  unsigned char k;
+
+  k = EEPROM.read(addrOffset);
+  while (k != '\0' && len < 63) {
+    data[len] = k;
+    len++;
+    k = EEPROM.read(addrOffset + len);
+  }
+  data[len] = '\0';
+  return String(data);
+}
 
 void reconnect() {
+  if (WiFi.status() != WL_CONNECTED) {
+    String ssid = readStringFromEEPROM(3);
+    String pass = readStringFromEEPROM(34);
+    WiFi.begin(ssid.c_str(), pass.c_str());
+  }
   if (client.connect(deviceID.c_str(), "status", 0, true, willMessageStr.c_str())) {
     client.subscribe(servoTimeTopic.c_str());
     client.subscribe(rotateNowTopic.c_str());
@@ -59,11 +76,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   else if (strcmp(topic, rotateNowTopic.c_str()) == 0) {
     rotateServo();
   }
+
+  else if (strcmp(topic, resetTopic.c_str()) == 0) {
+    Serial.println("Resetting Arduino...");
+    NVIC_SystemReset();
+  }
 }
 
 void wifiSetup() {
-  WiFi.begin(SSID, PASSWORD);
-
   client.setServer(MQTT_SERVER, 1883);
   client.setCallback(callback);
   reconnect();

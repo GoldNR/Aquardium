@@ -4,7 +4,6 @@
              x:Class="Aquardium.ArduinoTabbedPage"
              Title="Arduino">
     <TabbedPage.Children>
-        <!-- Sensors tab -->
         <ContentPage Title="Sensors">
             <ScrollView>
                 <VerticalStackLayout Padding="20" Spacing="20">
@@ -28,30 +27,48 @@
             </ScrollView>
         </ContentPage>
 
-        <!-- Controls tab -->
         <ContentPage Title="Controls">
             <ScrollView>
-                <VerticalStackLayout Padding="20" Spacing="20">
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="Simulate Arduino"      FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Button Text="Simulate Arduino"      FontSize="16"       Grid.Column="1"     VerticalOptions="Center" Clicked="OnSimulateArduino"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="Auto, *, *, Auto" VerticalOptions="Center">
-                        <Label
-                           Text="Set feeder time" 
-                           FontSize="16"
-                           VerticalOptions="Center"
-                           Grid.Column="0"/>
-                        <Button 
-                           Text="Set Feed Time"
-                           Clicked="OnSetFeederTimeClicked"
-                           Grid.Column="3"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="Feed Now"      FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Button Text="Feed Now"      FontSize="16"       Grid.Column="1"     VerticalOptions="Center" Clicked="OnFeedNowClicked"/>
-                    </Grid>
-                </VerticalStackLayout>
+                <Grid x:Name="controlButtonGrid"
+                    Padding="10"
+                    ColumnSpacing="10"
+                    RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- SET FEED TIME -->
+                    <Button Grid.Row="0"
+                        Grid.Column="0"
+                        HeightRequest="100"
+                        Margin="0,0,5,0"
+                        Text="Set Feed Time"
+                        BackgroundColor="#2196F3"
+                        Clicked="OnSetFeederTimeClicked"/>
+
+                    <!-- FEED NOW -->
+                    <Button Grid.Row="0"
+                        Grid.Column="1"
+                        HeightRequest="100"
+                        Margin="5,0,0,0"
+                        Text="Feed Now"
+                        BackgroundColor="#2196F3"
+                        Clicked="OnFeedNowClicked"/>
+
+                    <!-- RESET -->
+                    <Button Grid.Row="1"
+                        Grid.Column="0"
+                        HeightRequest="100"
+                        Margin="0,0,5,0"
+                        Text="Reset Arduino"
+                        BackgroundColor="#2196F3"
+                        Clicked="OnResetArduinoClicked"/>
+                </Grid>
             </ScrollView>
         </ContentPage>
     </TabbedPage.Children>

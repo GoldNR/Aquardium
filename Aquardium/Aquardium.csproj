@@ -63,8 +63,7 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
-		<PackageReference Include="MQTTnet" Version="4.3.7.1207" />
-		<PackageReference Include="MvvmCross.Plugin.BLE" Version="3.1.0" />
+		<PackageReference Include="MQTTnet" Version="5.0.1.1416" />
 		<PackageReference Include="Plugin.BLE" Version="3.1.0" />
 		<PackageReference Include="Plugin.Firebase.CloudMessaging" Version="3.1.2" />
 	</ItemGroup>
@@ -73,6 +72,9 @@
 	  <Compile Update="FeederTimePopup.xaml.cs">
 	    <DependentUpon>FeederTimePopup.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="WifiSetupPopup.xaml.cs">
+	    <DependentUpon>WifiSetupPopup.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -80,6 +82,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="FeederTimePopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="WifiSetupPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

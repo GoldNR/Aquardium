@@ -22,8 +22,6 @@ public class BluetoothService
         _adapter = CrossBluetoothLE.Current.Adapter;
         _adapter.DeviceConnected += HandleArduinoConnected;
         _adapter.DeviceConnectionLost += HandleArduinoDisconnected;
-
-        Connect();
     }
 
     public void Connect()
@@ -213,7 +211,6 @@ public class BluetoothService
             if (characteristicToWrite == null)
             {
                 Console.WriteLine("Characteristic to write not found!");
-                await Application.Current.MainPage.DisplayAlert("Error", "Characteristic to write not found!", "OK");
                 continue;
             }
 
