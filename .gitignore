@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /Aquardium/NuGet.config
 /nuget.exe
+/Aquardium/arduino_code/CONFIDENTIAL.h
