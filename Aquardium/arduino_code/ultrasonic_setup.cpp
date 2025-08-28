@@ -10,10 +10,8 @@ bool lowFeed = false;
 int average = 0;
 
 void ussSetup() {
-  // Set the trigPin as an OUTPUT
   pinMode(TRIG_PIN, OUTPUT);
   
-  // Set the echoPin as an INPUT
   pinMode(ECHO_PIN, INPUT);
 }
 
@@ -33,14 +31,15 @@ void ussLoop() {
   if (distValues.size() > 100) {
     distValues.pop_front();
 
-    if (average >= 200) {
+    if (average >= 50) {
       lowFeed = true;
     }
   }
-
-  for (int d : distValues) {
-    average += d;
+  if (distValues.size() == 100) {
+    for (int d : distValues) {
+      average += d;
+    }
+    average /= distValues.size();
+    //Serial.println(average);
   }
-  average /= distValues.size();
-  //Serial.println(average);
 }

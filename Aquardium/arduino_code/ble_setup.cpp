@@ -6,13 +6,22 @@
 BLEService service("12345678-1234-5678-1234-56789abcdef0"); 
 BLECharacteristic tempCharacteristic("12345678-1234-5678-1234-56789abcdef1", BLENotify, 10);
 BLECharacteristic turbidityCharacteristic("12345678-1234-5678-1234-56789abcdef2", BLENotify, 10);
-BLECharacteristic servoCharacteristic("12345678-1234-5678-1234-56789abcdef3", BLEWrite, 30); //formerly 30
+BLECharacteristic servoCharacteristic("12345678-1234-5678-1234-56789abcdef3", BLEWrite, 30);
 BLECharacteristic feedNowCharacteristic("12345678-1234-5678-1234-56789abcdef4", BLEWrite, 5);
 BLECharacteristic timeLastFedCharacteristic("12345678-1234-5678-1234-56789abcdef5", BLENotify, 20);
 BLECharacteristic resetCharacteristic("12345678-1234-5678-1234-56789abcdef6", BLEWrite, 5);
-BLECharacteristic ssidCharacteristic("12345678-1234-5678-1234-56789abcdef7", BLEWrite, 30); //formerly 30
-BLECharacteristic passCharacteristic("12345678-1234-5678-1234-56789abcdef8", BLEWrite, 30); //formerly 30
+BLECharacteristic ssidCharacteristic("12345678-1234-5678-1234-56789abcdef7", BLEWrite, 30);
+BLECharacteristic passCharacteristic("12345678-1234-5678-1234-56789abcdef8", BLEWrite, 30);
 BLEDevice central;
+
+void writeCharArrayToEEPROM(int startAddr, const char* data, int maxLen) {
+    int i = 0;
+    for (; i < maxLen; i++) {
+      char c = data[i];
+      EEPROM.put(startAddr + i, c);
+      if (c == '\0') break;
+    }
+}
 
 void bleSetup() {
   BLE.setLocalName(deviceID.c_str());
@@ -47,15 +56,6 @@ void bleLoop() {
     turbidityCharacteristic.writeValue(turbReading.c_str(), false);
     timeLastFedCharacteristic.writeValue(timeLastFed.c_str(), false);
   }
-}
-
-void writeCharArrayToEEPROM(int startAddr, const char* data, int maxLen) {
-    int i = 0;
-    for (; i < maxLen; i++) {
-      char c = data[i];
-      EEPROM.write(startAddr + i, c);
-      if (c == '\0') break;
-    }
 }
 
 void onServoCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
@@ -101,7 +101,7 @@ void onSsidCharacteristicWritten(BLEDevice central, BLECharacteristic characteri
   receivedData[ssidCharacteristic.valueLength()] = '\0';
   Serial.println(receivedData);
 
-  writeCharArrayToEEPROM(3, receivedData, 31);
+  writeCharArrayToEEPROM(8, receivedData, 30);
 }
 
 void onPassCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
@@ -110,7 +110,7 @@ void onPassCharacteristicWritten(BLEDevice central, BLECharacteristic characteri
   receivedData[passCharacteristic.valueLength()] = '\0';
   Serial.println(receivedData);
 
-  writeCharArrayToEEPROM(34, receivedData, 63);
+  writeCharArrayToEEPROM(38, receivedData, 30);
 }
 
 void BLEPoll() {

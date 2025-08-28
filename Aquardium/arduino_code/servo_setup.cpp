@@ -95,9 +95,14 @@ void rotateServo() {
   servo.write(centerPos);
   delay(500);
 
-  timeLastFed = String(rtc.month()) + "/" + String(rtc.day()) + "/" + String(rtc.year()) + " " + String(rtc.hour()) + ":" + String(rtc.minute());
+  /*timeLastFed = String(rtc.month()) + "/" + String(rtc.day()) + "/" + String(rtc.year()) + " " + String(rtc.hour()) + ":" + String(rtc.minute());
   Serial.print("Time last rotated: ");
-  Serial.println(timeLastFed.c_str());
+  Serial.println(timeLastFed.c_str());*/
+  EEPROM.put(3, rtc.month());
+  EEPROM.put(4, rtc.day());
+  EEPROM.put(5, rtc.year());
+  EEPROM.put(6, rtc.hour());
+  EEPROM.put(7, rtc.minute());
 }
 
 void servoSetup() {
@@ -110,7 +115,7 @@ void servoSetup() {
   URTCLIB_WIRE.begin();
   unsigned long unixTime = timeClient.getEpochTime();
   epochToDateTime(unixTime, year, month, day, hour, minute, second, weekday);
-  rtc.set(second, minute, hour, weekday, day, month, year);
+  rtc.set(second, minute, hour, weekday, day, month, (year % 100));
 }
 
 void servoLoop() {
@@ -138,4 +143,10 @@ void servoLoop() {
     else if (rtc.hour() <= targetHour && rtc.minute() < targetMinute && hasRotatedForTheDay == true)
       hasRotatedForTheDay = false;
   }
+
+  timeLastFed = String(EEPROM.read(3)) + "/"
+              + String(EEPROM.read(4)) + "/"
+              + String(EEPROM.read(5)) + " "
+              + String(EEPROM.read(6)) + ":"
+              + String(EEPROM.read(7));
 }

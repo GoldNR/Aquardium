@@ -9,4 +9,5 @@ void turbiditySetup() {}
 void turbidityLoop() {
   turbValue = analogRead(A0);
   turbReading = String(turbValue);
+  // distance when empty: 58
 }

@@ -31,9 +31,11 @@ String readStringFromEEPROM(int addrOffset) {
 
 void reconnect() {
   if (WiFi.status() != WL_CONNECTED) {
-    String ssid = readStringFromEEPROM(3);
-    String pass = readStringFromEEPROM(34);
+    String ssid = readStringFromEEPROM(8);
+    String pass = readStringFromEEPROM(38);
     WiFi.begin(ssid.c_str(), pass.c_str());
+    Serial.println(ssid.c_str());
+    Serial.println(pass.c_str());
   }
   if (client.connect(deviceID.c_str(), "status", 0, true, willMessageStr.c_str())) {
     client.subscribe(servoTimeTopic.c_str());
