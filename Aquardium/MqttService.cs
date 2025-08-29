@@ -2,6 +2,7 @@
 using System.Text.Json;
 using MQTTnet;
 using CommunityToolkit.Mvvm.Messaging;
+using Plugin.Firebase.CloudMessaging;
 
 namespace Aquardium;
 
@@ -124,6 +125,7 @@ public class MqttService
             if (device == null) // If Arduino is not in the list, add it
             {
                 device = new ArduinoDevice { Id = arduinoId, Status = "Online" };
+                RegisterDeviceTokenAsync(arduinoId);
                 mainPage.Devices.Add(device);
                 mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, "WIFI"));
             }
@@ -142,7 +144,7 @@ public class MqttService
                 Id = arduinoId,
                 Status = "Online"
             };
-
+            RegisterDeviceTokenAsync(arduinoId);
             var newMainPage = new MainPage
             {
                 connectionMode = "WIFI",
@@ -198,5 +200,41 @@ public class MqttService
             .Build();
 
         await mqttClient.PublishAsync(mqttMessage);
+    }
+
+    private async Task RegisterDeviceTokenAsync(string deviceId)
+    {
+        try
+        {
+            var token = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
+            Console.WriteLine($"Device Token: {token}");
+
+            var client = new HttpClient();
+            string url = CONFIDENTIAL.DATABASE_URL + $"/feeders/{deviceId}/tokens.json?auth={CONFIDENTIAL.DATABASE_SECRET}";
+
+            var existingResponse = await client.GetAsync(url);
+            string existingJson = await existingResponse.Content.ReadAsStringAsync();
+
+            Dictionary<string, string>? existingTokens = null;
+            if (!string.IsNullOrWhiteSpace(existingJson) && existingJson != "null")
+            {
+                existingTokens = JsonSerializer.Deserialize<Dictionary<string, string>>(existingJson);
+            }
+
+            if (existingTokens != null && existingTokens.ContainsValue(token))
+            {
+                Console.WriteLine("Token already registered. Skipping...");
+                return;
+            }
+
+            var newToken = new { token = token };
+            string json = JsonSerializer.Serialize(newToken);
+
+            await client.PatchAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to get token: {ex.Message}");
+        }
     }
 }

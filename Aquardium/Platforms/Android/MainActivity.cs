@@ -2,6 +2,7 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using Firebase;
 using Plugin.Firebase.CloudMessaging;
 
 namespace Aquardium
@@ -12,6 +13,27 @@ namespace Aquardium
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            try
+            {
+                var app = FirebaseApp.InitializeApp(this);
+                if (app == null)
+                {
+                    var options = new FirebaseOptions.Builder()
+                        .SetApplicationId(CONFIDENTIAL.APP_ID)
+                        .SetApiKey(CONFIDENTIAL.API_KEY)
+                        .SetDatabaseUrl(CONFIDENTIAL.DATABASE_URL)
+                        .SetGcmSenderId(CONFIDENTIAL.SENDER_ID)
+                        .Build();
+
+                    FirebaseApp.InitializeApp(this, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FIREBASE INIT ERROR] {ex.Message}");
+            }
+
             HandleIntent(Intent);
             CreateNotificationChannelIfNeeded();
         }

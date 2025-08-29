@@ -17,7 +17,7 @@ void firebaseLoop() {
                       ", \"ultrasonic\": " + String(average) + "}";
 
     httpClient.beginRequest();
-    httpClient.put(path);
+    httpClient.patch(path);
     httpClient.sendHeader("Content-Type", "application/json");
     httpClient.sendHeader("Content-Length", jsonData.length());
     httpClient.beginBody();
@@ -32,6 +32,6 @@ void firebaseLoop() {
     Serial.print("Response: ");
     Serial.println(response);
 
-    delay(3000);
+    delay(5000);
   }
 }

@@ -8,6 +8,7 @@ using Plugin.Firebase.Core.Platforms.iOS;
 using Plugin.Firebase.Core.Platforms.Android;
 #endif
 
+
 namespace Aquardium;
 
 public static class MauiProgram
