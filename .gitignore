@@ -364,3 +364,5 @@ FodyWeavers.xsd
 /Aquardium/NuGet.config
 /nuget.exe
 /Aquardium/arduino_code/CONFIDENTIAL.h
+/Aquardium/CONFIDENTIAL.cs
+/Aquardium/Platforms/Android/google-services.json
