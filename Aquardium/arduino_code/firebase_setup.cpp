@@ -1,6 +1,7 @@
 #include "firebase_setup.h"
 #include "temperature_setup.h"
 #include "ultrasonic_setup.h"
+#include "turbidity_setup.h"
 #include "CONFIDENTIAL.h"
 
 WiFiSSLClient wifi;
@@ -14,7 +15,8 @@ void firebaseSetup() {
 void firebaseLoop() {
   if (WiFi.status() == WL_CONNECTED) {
     String jsonData = "{\"temperature\": " + tempReading + 
-                      ", \"ultrasonic\": " + String(average) + "}";
+                      ", \"ultrasonic\": " + String(average) + 
+                      ", \"turbidity\": " + turbReading + "}";
 
     httpClient.beginRequest();
     httpClient.patch(path);
