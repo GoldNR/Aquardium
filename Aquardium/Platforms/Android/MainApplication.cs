@@ -15,7 +15,6 @@ namespace Aquardium
         public override void OnCreate()
         {
             base.OnCreate();
-            // Initialize Firebase
             FirebaseApp.InitializeApp(this);
         }
 

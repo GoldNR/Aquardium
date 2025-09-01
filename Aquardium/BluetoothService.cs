@@ -154,6 +154,7 @@ public class BluetoothService
                 .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef2"));
             var timeLastFedCharacteristic = characteristics
                 .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef5"));
+            // Add new characteristic here when applicable
 
             if (tempCharacteristic == null || turbidityCharacteristic == null || timeLastFedCharacteristic == null)
             {
@@ -184,10 +185,12 @@ public class BluetoothService
                     WeakReferenceMessenger.Default.Send(new TimeLastFedUpdateMessage(device.Name, Encoding.UTF8.GetString(args.Characteristic.Value)));
                 });
             };
+            // Add new characteristic here when applicable
 
             await tempCharacteristic.StartUpdatesAsync();
             await turbidityCharacteristic.StartUpdatesAsync();
             await timeLastFedCharacteristic.StartUpdatesAsync();
+            // Add new characteristic here when applicable
         }
     }
 

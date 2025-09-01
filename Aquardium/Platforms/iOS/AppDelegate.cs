@@ -12,10 +12,8 @@ namespace Aquardium
 
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
-            // ✅ Initialize Firebase for iOS
             Firebase.Core.App.Configure();
 
-            // ✅ Request notification permissions
             UNUserNotificationCenter.Current.RequestAuthorization(
                 UNAuthorizationOptions.Alert | UNAuthorizationOptions.Badge | UNAuthorizationOptions.Sound,
                 (approved, err) =>
@@ -30,7 +28,6 @@ namespace Aquardium
                     }
                 });
 
-            // ✅ Register for remote notifications
             UIApplication.SharedApplication.RegisterForRemoteNotifications();
 
             return base.FinishedLaunching(app, options);

@@ -13,15 +13,15 @@
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Temperature:"         FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="-- &#176;C"           FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TemperatureValue"/>
+                        <Label  Text="-- &#176;C"           FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TemperatureValue"   x:DataType="x:String"/>
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Water Quality:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"/>
+                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"     x:DataType="x:String"/>
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Time Last Fed:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TimeValue"/>
+                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TimeValue"          x:DataType="x:String"/>
                     </Grid>
                 </VerticalStackLayout>
             </ScrollView>

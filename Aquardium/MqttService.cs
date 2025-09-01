@@ -210,27 +210,27 @@ public class MqttService
             Console.WriteLine($"Device Token: {token}");
 
             var client = new HttpClient();
-            string url = CONFIDENTIAL.DATABASE_URL + $"/feeders/{deviceId}/tokens.json?auth={CONFIDENTIAL.DATABASE_SECRET}";
+            string url = $"{CONFIDENTIAL.DATABASE_URL}/feeders/{deviceId}/tokens.json?auth={CONFIDENTIAL.DATABASE_SECRET}";
 
-            var existingResponse = await client.GetAsync(url);
-            string existingJson = await existingResponse.Content.ReadAsStringAsync();
+            var response = await client.GetAsync(url);
+            string responseBody = await response.Content.ReadAsStringAsync();
 
-            Dictionary<string, string>? existingTokens = null;
-            if (!string.IsNullOrWhiteSpace(existingJson) && existingJson != "null")
+            var existingTokens = JsonSerializer.Deserialize<Dictionary<string, string>>(responseBody);
+
+            bool tokenExists = existingTokens?.Values.Contains(token) ?? false;
+
+            if (!tokenExists)
             {
-                existingTokens = JsonSerializer.Deserialize<Dictionary<string, string>>(existingJson);
+                string uniqueKey = Guid.NewGuid().ToString();
+                var newToken = new Dictionary<string, string>
+                {
+                    { uniqueKey, token }
+                };
+
+                string json = JsonSerializer.Serialize(newToken);
+                await client.PatchAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
             }
 
-            if (existingTokens != null && existingTokens.ContainsValue(token))
-            {
-                Console.WriteLine("Token already registered. Skipping...");
-                return;
-            }
-
-            var newToken = new { token = token };
-            string json = JsonSerializer.Serialize(newToken);
-
-            await client.PatchAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
         }
         catch (Exception ex)
         {

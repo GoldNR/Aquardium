@@ -1,4 +1,5 @@
-﻿using Android.App;
+﻿using Android;
+using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
@@ -13,6 +14,14 @@ namespace Aquardium
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu) // Android 13+
+            {
+                if (CheckSelfPermission(Manifest.Permission.PostNotifications) != Permission.Granted)
+                {
+                    RequestPermissions(new string[] { Manifest.Permission.PostNotifications }, 0);
+                }
+            }
 
             try
             {
