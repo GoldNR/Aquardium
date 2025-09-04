@@ -29,20 +29,26 @@ String readStringFromEEPROM(int addrOffset) {
   return String(data);
 }
 
+void connectToWifi() {
+  String ssid = readStringFromEEPROM(8);
+  String pass = readStringFromEEPROM(38);
+  WiFi.begin(ssid.c_str(), pass.c_str());
+  Serial.println(ssid.c_str());
+  Serial.println(pass.c_str());
+}
+
 void reconnect() {
   if (WiFi.status() != WL_CONNECTED) {
-    String ssid = readStringFromEEPROM(8);
-    String pass = readStringFromEEPROM(38);
-    WiFi.begin(ssid.c_str(), pass.c_str());
-    Serial.println(ssid.c_str());
-    Serial.println(pass.c_str());
+    connectToWifi();
   }
-  if (client.connect(deviceID.c_str(), "status", 0, true, willMessageStr.c_str())) {
-    client.subscribe(servoTimeTopic.c_str());
-    client.subscribe(rotateNowTopic.c_str());
-    Serial.println(isOnlineMessage.c_str());
-    Serial.println("Connected to MQTT broker.");
-  } else Serial.println("Connecting...");
+  else {
+    if (client.connect(deviceID.c_str(), "status", 0, true, willMessageStr.c_str())) {
+      client.subscribe(servoTimeTopic.c_str());
+      client.subscribe(rotateNowTopic.c_str());
+      Serial.println(isOnlineMessage.c_str());
+      Serial.println("Connected to MQTT broker.");
+    } else Serial.println("Connecting...");
+  }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -86,6 +92,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void wifiSetup() {
+  connectToWifi();
   client.setServer(MQTT_SERVER, 1883);
   client.setCallback(callback);
   reconnect();
