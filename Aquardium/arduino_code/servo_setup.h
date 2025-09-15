@@ -1,6 +1,5 @@
 #ifndef SERVO_SETUP_H
 #define SERVO_SETUP_H
-//#include <Arduino.h>
 #include <Servo.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>

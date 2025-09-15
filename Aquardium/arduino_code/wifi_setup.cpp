@@ -20,7 +20,7 @@ String readStringFromEEPROM(int addrOffset) {
   unsigned char k;
 
   k = EEPROM.read(addrOffset);
-  while (k != '\0' && len < 63) {
+  while (k != '\0' && len <= 30) {
     data[len] = k;
     len++;
     k = EEPROM.read(addrOffset + len);
@@ -30,11 +30,25 @@ String readStringFromEEPROM(int addrOffset) {
 }
 
 void connectToWifi() {
+  Serial.println("Connecting to WiFi...");
   String ssid = readStringFromEEPROM(8);
   String pass = readStringFromEEPROM(38);
+
   WiFi.begin(ssid.c_str(), pass.c_str());
-  Serial.println(ssid.c_str());
-  Serial.println(pass.c_str());
+
+  unsigned long startAttemptTime = millis();
+  const unsigned long timeout = 5000;
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < timeout) {
+    BLEPoll();
+    delay(10); 
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("Connected to WiFi!");
+  }
+  else {
+    Serial.println("Didn't connect successfully...");
+  }
 }
 
 void reconnect() {

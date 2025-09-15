@@ -57,47 +57,18 @@ void epochToDateTime(unsigned long epoch, int &year, int &month, int &day, int &
 }
 
 void rotateServo() {
-  servo.write(centerPos + 90);
+  servo.write(0);
   delay(500);
 
-  servo.write(centerPos);
-  delay(500);
-  
-  servo.write(centerPos - 90);
-  delay(500);
+  servo.write(180);
+  delay(960);
 
-  servo.write(centerPos - 180);
-  delay(500); 
+  servo.write(0);
+  delay(550);
 
-  servo.write(centerPos + 90);
-  delay(500); 
+  servo.write(90);
+  delay(3000);
 
-  servo.write(centerPos);
-  delay(500);
-
-  //
-
-  servo.write(centerPos + 90);
-  delay(500);
-
-  servo.write(centerPos);
-  delay(500);
-  
-  servo.write(centerPos - 90);
-  delay(500);
-
-  servo.write(centerPos - 180);
-  delay(500); 
-
-  servo.write(centerPos + 90);
-  delay(500); 
-
-  servo.write(centerPos);
-  delay(500);
-
-  /*timeLastFed = String(rtc.month()) + "/" + String(rtc.day()) + "/" + String(rtc.year()) + " " + String(rtc.hour()) + ":" + String(rtc.minute());
-  Serial.print("Time last rotated: ");
-  Serial.println(timeLastFed.c_str());*/
   EEPROM.put(3, rtc.month());
   EEPROM.put(4, rtc.day());
   EEPROM.put(5, rtc.year());
@@ -124,14 +95,16 @@ void servoLoop() {
   targetHour = (int) EEPROM.read(0);
   targetMinute = (int) EEPROM.read(1);
 
-  if (timeClient.update()) {
-    if (timeClient.getHours() == targetHour && timeClient.getMinutes() == targetMinute && hasRotatedForTheDay == false) {
-      rotateServo();
-      hasRotatedForTheDay = true;
-    }
+  if (WiFi.status() == WL_CONNECTED) {
+    if (timeClient.update()) {
+      if (timeClient.getHours() == targetHour && timeClient.getMinutes() == targetMinute && hasRotatedForTheDay == false) {
+        rotateServo();
+        hasRotatedForTheDay = true;
+      }
 
-    else if (timeClient.getHours() <= targetHour && timeClient.getMinutes() < targetMinute && hasRotatedForTheDay == true)
-      hasRotatedForTheDay = false;
+      else if (timeClient.getHours() <= targetHour && timeClient.getMinutes() < targetMinute && hasRotatedForTheDay == true)
+        hasRotatedForTheDay = false;
+    }
   }
 
   else {

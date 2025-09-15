@@ -20,5 +20,6 @@ void callback(char* topic, byte* payload, unsigned int length);
 void wifiSetup();
 void wifiLoop();
 String readStringFromEEPROM(int addrOffset);
+extern void BLEPoll();
 
 #endif

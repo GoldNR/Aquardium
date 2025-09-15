@@ -28,7 +28,7 @@ void bleSetup() {
   BLE.setDeviceName(deviceID.c_str());
   if (!BLE.begin()) {
     Serial.println("BLE init failed");
-    while (1);  // Halt execution
+    while (1);
   }
   BLE.setAdvertisedService(service);
   service.addCharacteristic(servoCharacteristic);
