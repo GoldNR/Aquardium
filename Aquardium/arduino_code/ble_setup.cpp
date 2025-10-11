@@ -2,6 +2,7 @@
 #include "temperature_setup.h"
 #include "turbidity_setup.h"
 #include "servo_setup.h"
+#include "pH_setup.h"
 
 BLEService service("12345678-1234-5678-1234-56789abcdef0"); 
 BLECharacteristic tempCharacteristic("12345678-1234-5678-1234-56789abcdef1", BLENotify, 10);
@@ -12,6 +13,7 @@ BLECharacteristic timeLastFedCharacteristic("12345678-1234-5678-1234-56789abcdef
 BLECharacteristic resetCharacteristic("12345678-1234-5678-1234-56789abcdef6", BLEWrite, 5);
 BLECharacteristic ssidCharacteristic("12345678-1234-5678-1234-56789abcdef7", BLEWrite, 30);
 BLECharacteristic passCharacteristic("12345678-1234-5678-1234-56789abcdef8", BLEWrite, 30);
+BLECharacteristic pHCharacteristic("12345678-1234-5678-1234-56789abcdef9", BLENotify, 10);
 BLEDevice central;
 
 void writeCharArrayToEEPROM(int startAddr, const char* data, int maxLen) {
@@ -39,6 +41,7 @@ void bleSetup() {
   service.addCharacteristic(resetCharacteristic);
   service.addCharacteristic(ssidCharacteristic);
   service.addCharacteristic(passCharacteristic);
+  service.addCharacteristic(pHCharacteristic);
   servoCharacteristic.setEventHandler(BLEWritten, onServoCharacteristicWritten);
   feedNowCharacteristic.setEventHandler(BLEWritten, onFeedNowCharacteristicWritten);
   resetCharacteristic.setEventHandler(BLEWritten, onResetCharacteristicWritten);
@@ -49,13 +52,18 @@ void bleSetup() {
 }
 
 void bleLoop() {
+  Serial.println("BLE Loop started.");
+
   BLE.poll();
   central = BLE.central();
   if (central && central.connected()) {
     tempCharacteristic.writeValue(tempReading.c_str(), false);
     turbidityCharacteristic.writeValue(turbReading.c_str(), false);
+    pHCharacteristic.writeValue(pHReading.c_str(), false);
     timeLastFedCharacteristic.writeValue(timeLastFed.c_str(), false);
   }
+
+  Serial.println("BLE Loop finished.");
 }
 
 void onServoCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {

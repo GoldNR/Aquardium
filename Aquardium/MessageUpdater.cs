@@ -26,6 +26,12 @@ public class TurbidityUpdateMessage : ValueChangedMessage<(string ArduinoId, str
     : base((arduinoId, turbidity)) {}
 }
 
+public class pHUpdateMessage : ValueChangedMessage<(string ArduinoId, string pH)>
+{
+    public pHUpdateMessage(string arduinoId, string pH)
+    : base((arduinoId, pH)) { }
+}
+
 public class TimeLastFedUpdateMessage : ValueChangedMessage<(string ArduinoId, string TLF)>
 {
     public TimeLastFedUpdateMessage(string arduinoId, string tlf)

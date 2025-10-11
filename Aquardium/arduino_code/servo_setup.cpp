@@ -61,13 +61,17 @@ void rotateServo() {
   delay(500);
 
   servo.write(180);
-  delay(960);
+  delay(500);
 
+  servo.write(90);
+
+  /*
   servo.write(0);
   delay(550);
 
   servo.write(90);
   delay(3000);
+  */
 
   EEPROM.put(3, rtc.month());
   EEPROM.put(4, rtc.day());
@@ -90,6 +94,8 @@ void servoSetup() {
 }
 
 void servoLoop() {
+  Serial.println("Servo Loop started.");
+
   rtc.refresh();
 
   targetHour = (int) EEPROM.read(0);
@@ -122,4 +128,6 @@ void servoLoop() {
               + String(EEPROM.read(5)) + " "
               + String(EEPROM.read(6)) + ":"
               + String(EEPROM.read(7));
+
+  Serial.println("Servo Loop finished.");
 }

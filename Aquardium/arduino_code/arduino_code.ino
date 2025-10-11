@@ -5,6 +5,7 @@
 #include "ultrasonic_setup.h"
 #include "servo_setup.h"
 #include "turbidity_setup.h"
+#include "pH_setup.h"
 
 /* TAKEN DIGITAL PINS: 
     2: Temperature              7: Ultrasonic TRIG
@@ -35,6 +36,7 @@ void setup() {
   firebaseSetup();
   tempSetup();
   ussSetup();
+  pHSetup();
   servoSetup();
   turbiditySetup();
 }
@@ -50,13 +52,17 @@ void loop() {
   BLEPoll();
 
   tempLoop();
-
   BLEPoll();
+
   ussLoop();
-
   BLEPoll();
+
+  pHLoop();
+  BLEPoll();
+
   servoLoop();
-
   BLEPoll();
+
   turbidityLoop();
+  BLEPoll();
 }

@@ -13,6 +13,7 @@ extern BLECharacteristic timeLastFedCharacteristic;
 extern BLECharacteristic resetCharacteristic;
 extern BLECharacteristic ssidCharacteristic;
 extern BLECharacteristic passCharacteristic;
+extern BLECharacteristic pHCharacteristic;
 extern BLEDevice central;
 
 extern const String deviceID;

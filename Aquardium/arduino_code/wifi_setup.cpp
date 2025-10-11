@@ -2,6 +2,7 @@
 #include "temperature_setup.h"
 #include "turbidity_setup.h"
 #include "servo_setup.h"
+#include "pH_setup.h"
 
 #define MQTT_SERVER "broker.hivemq.com"
 
@@ -113,6 +114,8 @@ void wifiSetup() {
 }
 
 void wifiLoop() {
+  Serial.println("Wifi Loop started.");
+
   if (client.connected()) {
     client.publish("status", isOnlineMessage.c_str());
 
@@ -122,10 +125,15 @@ void wifiLoop() {
     turbMessage = "{\"id\":\"" + deviceID + "\",\"turbidity\":\"" + turbReading + "\"}";
     client.publish("sensors/turbidity", turbMessage.c_str());
 
+    pHMessage = "{\"id\":\"" + deviceID + "\",\"pH\":\"" + pHReading + "\"}";
+    client.publish("sensors/pH", pHMessage.c_str());
+
     timeLastFedMessage = "{\"id\":\"" + deviceID + "\",\"timeLastFed\":\"" + timeLastFed + "\"}";
     client.publish("sensors/timeLastFed", timeLastFedMessage.c_str());
 
     client.loop();
   }
   else reconnect();
+
+  Serial.println("Wifi Loop finished.");
 }

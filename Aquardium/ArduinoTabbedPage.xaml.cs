@@ -18,7 +18,7 @@ public partial class ArduinoTabbedPage : TabbedPage
 		InitializeComponent();
         Device = device;
         BindingContext = Device;
-        Title = device.Id;
+        SetPageTitleAsync();
         this.connectionMode = connectionMode;
 
         if (connectionMode == "BLUETOOTH")
@@ -27,14 +27,24 @@ public partial class ArduinoTabbedPage : TabbedPage
             {
                 Text = "WiFi Setup",
                 BackgroundColor = Color.FromArgb("#2196F3"),
-                HeightRequest = 100,
-                Margin = new Thickness(5, 0, 0, 0)
+                HeightRequest = 100
             };
-            Grid.SetRow(wifiSetupButton, 1);
-            Grid.SetColumn(wifiSetupButton, 1);
+            Grid.SetRow(wifiSetupButton, 2);
+            Grid.SetColumn(wifiSetupButton, 0);
             wifiSetupButton.Clicked += OnWifiSetupClicked;
             controlButtonGrid.Children.Add(wifiSetupButton);
         }
+    }
+
+    private async Task SetPageTitleAsync()
+    {
+        var deviceNames = await DeviceNameStorage.LoadAsync();
+
+        if (deviceNames.TryGetValue(Device.Id, out var customName))
+            Title = customName + $" ({Device.Id})";
+
+        else
+            Title = Device.Id;
     }
 
     protected override void OnAppearing()
@@ -88,6 +98,11 @@ public partial class ArduinoTabbedPage : TabbedPage
                 TurbidityValue.TextColor = Colors.Gray;
             }
         });
+        WeakReferenceMessenger.Default.Register<pHUpdateMessage>(this, (recipient, message) =>
+        {
+            if (message.Value.ArduinoId == Device.Id)
+                pHValue.Text = message.Value.pH == "-1.00" ? "Sensor disconnected" : $"{message.Value.pH}";
+        });
         WeakReferenceMessenger.Default.Register<TimeLastFedUpdateMessage>(this, (recipient, message) =>
         {
             if (message.Value.ArduinoId == Device.Id)
@@ -103,7 +118,20 @@ public partial class ArduinoTabbedPage : TabbedPage
         WeakReferenceMessenger.Default.Unregister<StatusUpdateMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TemperatureUpdateMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TurbidityUpdateMessage>(this);
+        WeakReferenceMessenger.Default.Unregister<pHUpdateMessage>(this);
         WeakReferenceMessenger.Default.Unregister<TimeLastFedUpdateMessage>(this);
+    }
+
+    private async void OnSetCustomNameClicked(object sender, EventArgs e)
+    {
+        var name = await this.ShowPopupAsync<string>(new SetCustomNamePopup());
+        if (name != null)
+        {
+            Title = name.Result + $" ({Device.Id})" ?? Device.Id;
+            var deviceNames = await DeviceNameStorage.LoadAsync();
+            deviceNames[Device.Id] = name.Result;
+            await DeviceNameStorage.SaveAsync(deviceNames);
+        }
     }
 
     private async void OnSetFeederTimeClicked(object sender, EventArgs e) 
@@ -192,4 +220,26 @@ public partial class ArduinoTabbedPage : TabbedPage
         }
     }
 
+}
+
+public static class DeviceNameStorage
+{
+    private static string FilePath =>
+        Path.Combine(FileSystem.AppDataDirectory, "deviceNames.json");
+
+    public static async Task<Dictionary<string, string>> LoadAsync()
+    {
+        if (!File.Exists(FilePath))
+            return new Dictionary<string, string>();
+
+        var json = await File.ReadAllTextAsync(FilePath);
+        return JsonSerializer.Deserialize<Dictionary<string, string>>(json)
+               ?? new Dictionary<string, string>();
+    }
+
+    public static async Task SaveAsync(Dictionary<string, string> deviceNames)
+    {
+        var json = JsonSerializer.Serialize(deviceNames, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(FilePath, json);
+    }
 }

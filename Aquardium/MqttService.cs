@@ -47,6 +47,7 @@ public class MqttService
                     await mqttClient.SubscribeAsync("status");
                     await mqttClient.SubscribeAsync("sensors/temperature");
                     await mqttClient.SubscribeAsync("sensors/turbidity");
+                    await mqttClient.SubscribeAsync("sensors/pH");
                     await mqttClient.SubscribeAsync("sensors/timeLastFed");
                 }
             }
@@ -70,34 +71,38 @@ public class MqttService
                 var payloadString = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
                 var payload = JsonSerializer.Deserialize<Dictionary<string, string>>(payloadString);
                 var arduinoId = payload.GetValueOrDefault("id", "unknown");
-
-                if (e.ApplicationMessage.Topic == "status")
+        
+                switch (e.ApplicationMessage.Topic)
                 {
-                    var status = payload.GetValueOrDefault("status", "unknown");
+                    case "status":
+                        var status = payload.GetValueOrDefault("status", "unknown");
 
-                    if (status == "online")
-                        HandleArduinoOnline(arduinoId);
+                        if (status == "online")
+                            HandleArduinoOnline(arduinoId);
 
-                    else if (status == "offline")
-                        HandleArduinoOffline(arduinoId);
-                }
+                        else if (status == "offline")
+                            HandleArduinoOffline(arduinoId);
+                        break;
 
-                else if (e.ApplicationMessage.Topic == "sensors/temperature")
-                {
-                    var temperature = payload.GetValueOrDefault("temp", "unknown");
-                    WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
-                }
+                    case "sensors/temperature":
+                        var temperature = payload.GetValueOrDefault("temp", "unknown");
+                        WeakReferenceMessenger.Default.Send(new TemperatureUpdateMessage(arduinoId, temperature));
+                        break;
 
-                else if (e.ApplicationMessage.Topic == "sensors/turbidity")
-                {
-                    var turbidity = payload.GetValueOrDefault("turbidity", "unknown");
-                    WeakReferenceMessenger.Default.Send(new TurbidityUpdateMessage(arduinoId, turbidity));
-                }
+                    case "sensors/turbidity":
+                        var turbidity = payload.GetValueOrDefault("turbidity", "unknown");
+                        WeakReferenceMessenger.Default.Send(new TurbidityUpdateMessage(arduinoId, turbidity));
+                        break;
 
-                else if (e.ApplicationMessage.Topic == "sensors/timeLastFed")
-                {
-                    var tlf = payload.GetValueOrDefault("timeLastFed", "unknown");
-                    WeakReferenceMessenger.Default.Send(new TimeLastFedUpdateMessage(arduinoId, tlf));
+                    case "sensors/pH":
+                        var pH = payload.GetValueOrDefault("pH", "unknown");
+                        WeakReferenceMessenger.Default.Send(new pHUpdateMessage(arduinoId, pH));
+                        break;
+
+                    case "sensors/timeLastFed":
+                        var tlf = payload.GetValueOrDefault("timeLastFed", "unknown");
+                        WeakReferenceMessenger.Default.Send(new TimeLastFedUpdateMessage(arduinoId, tlf));
+                        break;
                 }
             }
 

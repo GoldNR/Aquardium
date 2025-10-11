@@ -13,6 +13,8 @@ void firebaseSetup() {
 }
 
 void firebaseLoop() {
+  Serial.println("Firebase Loop started.");
+
   if (WiFi.status() == WL_CONNECTED) {
     String jsonData = "{\"temperature\": " + tempReading + 
                       ", \"ultrasonic\": " + String(average) + 
@@ -26,6 +28,7 @@ void firebaseLoop() {
     httpClient.print(jsonData);
     httpClient.endRequest();
 
+    /*
     int statusCode = httpClient.responseStatusCode();
     String response = httpClient.responseBody();
 
@@ -33,7 +36,8 @@ void firebaseLoop() {
     Serial.println(statusCode);
     Serial.print("Response: ");
     Serial.println(response);
-
-    delay(5000);
+    */
   }
+
+  Serial.println("Firebase Loop finished.");
 }

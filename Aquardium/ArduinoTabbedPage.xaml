@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <TabbedPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Aquardium.ArduinoTabbedPage"
-             Title="Arduino">
+             x:Class="Aquardium.ArduinoTabbedPage">
     <TabbedPage.Children>
         <ContentPage Title="Sensors">
             <ScrollView>
@@ -18,6 +17,10 @@
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Water Quality:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
                         <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"     x:DataType="x:String"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                        <Label  Text="pH Level:"            FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="pHValue"            x:DataType="x:String"/>
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Time Last Fed:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
@@ -36,35 +39,41 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- SET FEED TIME -->
+                    <!-- SET CUSTOM NAME -->
                     <Button Grid.Row="0"
                         Grid.Column="0"
                         HeightRequest="100"
-                        Margin="0,0,5,0"
+                        Text="Set Custom Name"
+                        BackgroundColor="#2196F3"
+                        Clicked="OnSetCustomNameClicked"/>          
+
+                    <!-- SET FEED TIME -->
+                    <Button Grid.Row="0"
+                        Grid.Column="1"
+                        HeightRequest="100"
                         Text="Set Feed Time"
                         BackgroundColor="#2196F3"
                         Clicked="OnSetFeederTimeClicked"/>
 
                     <!-- FEED NOW -->
-                    <Button Grid.Row="0"
-                        Grid.Column="1"
+                    <Button Grid.Row="1"
+                        Grid.Column="0"
                         HeightRequest="100"
-                        Margin="5,0,0,0"
                         Text="Feed Now"
                         BackgroundColor="#2196F3"
                         Clicked="OnFeedNowClicked"/>
 
                     <!-- RESET -->
                     <Button Grid.Row="1"
-                        Grid.Column="0"
+                        Grid.Column="1"
                         HeightRequest="100"
-                        Margin="0,0,5,0"
                         Text="Reset Arduino"
                         BackgroundColor="#2196F3"
                         Clicked="OnResetArduinoClicked"/>

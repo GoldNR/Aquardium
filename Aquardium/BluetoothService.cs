@@ -152,11 +152,16 @@ public class BluetoothService
                 .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef1"));
             var turbidityCharacteristic = characteristics
                 .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef2"));
+            var pHCharacteristic = characteristics
+                .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef9"));
             var timeLastFedCharacteristic = characteristics
                 .FirstOrDefault(c => c.Id == Guid.Parse("12345678-1234-5678-1234-56789abcdef5"));
             // Add new characteristic here when applicable
 
-            if (tempCharacteristic == null || turbidityCharacteristic == null || timeLastFedCharacteristic == null)
+            if (tempCharacteristic == null ||
+                turbidityCharacteristic == null ||
+                timeLastFedCharacteristic == null ||
+                pHCharacteristic == null)
             {
                 Console.WriteLine("Failed to find characteristics.");
                 continue;
@@ -178,6 +183,14 @@ public class BluetoothService
                 });
             };
 
+            pHCharacteristic.ValueUpdated += (o, args) =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    WeakReferenceMessenger.Default.Send(new pHUpdateMessage(device.Name, Encoding.UTF8.GetString(args.Characteristic.Value)));
+                });
+            };
+
             timeLastFedCharacteristic.ValueUpdated += (o, args) =>
             {
                 MainThread.BeginInvokeOnMainThread(() =>
@@ -189,6 +202,7 @@ public class BluetoothService
 
             await tempCharacteristic.StartUpdatesAsync();
             await turbidityCharacteristic.StartUpdatesAsync();
+            await pHCharacteristic.StartUpdatesAsync();
             await timeLastFedCharacteristic.StartUpdatesAsync();
             // Add new characteristic here when applicable
         }

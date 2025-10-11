@@ -16,6 +16,8 @@ void ussSetup() {
 }
 
 void ussLoop() {
+  Serial.println("Ultrasonic Loop started.");
+
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
 
@@ -42,4 +44,6 @@ void ussLoop() {
     average /= distValues.size();
     //Serial.println(average);
   }
+
+  Serial.println("Ultrasonic Loop finished.");
 }
