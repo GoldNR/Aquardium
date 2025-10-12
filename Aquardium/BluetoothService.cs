@@ -66,7 +66,7 @@ public class BluetoothService
                     device = new ArduinoDevice { Id = e.Device.Name, Status = "Connected" };
                     mainPage.Devices.Add(device);
                     connectedDevices.Add(e.Device.Name, e.Device);
-                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH"));
+                    mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, ConnectionMode.Bluetooth));
                 }
                 else // If Arduino is in the list, update its status
                 {
@@ -86,8 +86,8 @@ public class BluetoothService
 
                 var newMainPage = new MainPage
                 {
-                    connectionMode = "BLUETOOTH",
-                    Detail = new NavigationPage(new ArduinoTabbedPage(device, "BLUETOOTH"))
+                    Mode = ConnectionMode.Bluetooth,
+                    Detail = new NavigationPage(new ArduinoTabbedPage(device, ConnectionMode.Bluetooth))
                 };
 
                 newMainPage.Devices.Add(device);

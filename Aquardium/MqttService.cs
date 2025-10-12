@@ -132,7 +132,7 @@ public class MqttService
                 device = new ArduinoDevice { Id = arduinoId, Status = "Online" };
                 RegisterDeviceTokenAsync(arduinoId);
                 mainPage.Devices.Add(device);
-                mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, "WIFI"));
+                mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(device, ConnectionMode.WiFi));
             }
             else // If Arduino is in the list, update its status
             {
@@ -152,8 +152,8 @@ public class MqttService
             RegisterDeviceTokenAsync(arduinoId);
             var newMainPage = new MainPage
             {
-                connectionMode = "WIFI",
-                Detail = new NavigationPage(new ArduinoTabbedPage(device, "WIFI"))
+                Mode = ConnectionMode.WiFi,
+                Detail = new NavigationPage(new ArduinoTabbedPage(device, ConnectionMode.WiFi))
             };
 
             newMainPage.Devices.Add(device);

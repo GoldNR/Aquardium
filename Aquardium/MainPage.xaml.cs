@@ -5,7 +5,7 @@ namespace Aquardium;
 public partial class MainPage : FlyoutPage
 {
     public ObservableCollection<ArduinoDevice> Devices { get; set; }
-    public string connectionMode;
+    public ConnectionMode Mode { get; set; }
 
     public MainPage()
     {
@@ -20,7 +20,7 @@ public partial class MainPage : FlyoutPage
         if (e.SelectedItem is ArduinoDevice selectedDevice)
         {
             DeviceListView.SelectedItem = null;
-            Detail = new NavigationPage(new ArduinoTabbedPage(selectedDevice, connectionMode));
+            Detail = new NavigationPage(new ArduinoTabbedPage(selectedDevice, Mode));
         }
     }
 }
@@ -29,4 +29,10 @@ public class ArduinoDevice
 {
     public string Id { get; set; }
     public string Status { get; set; }
+}
+
+public enum ConnectionMode
+{
+    Bluetooth,
+    WiFi
 }

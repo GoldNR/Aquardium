@@ -11,17 +11,17 @@ namespace Aquardium;
 public partial class ArduinoTabbedPage : TabbedPage
 {
     private ArduinoDevice Device { get; set; }
-    private string connectionMode;
+    private ConnectionMode Mode { get; set; }
 
-    public ArduinoTabbedPage(ArduinoDevice device, string connectionMode)
+    public ArduinoTabbedPage(ArduinoDevice device, ConnectionMode connectionMode)
 	{
 		InitializeComponent();
         Device = device;
         BindingContext = Device;
         SetPageTitleAsync();
-        this.connectionMode = connectionMode;
+        this.Mode = connectionMode;
 
-        if (connectionMode == "BLUETOOTH")
+        if (connectionMode == ConnectionMode.Bluetooth)
         {
             var wifiSetupButton = new Button
             {
@@ -160,10 +160,10 @@ public partial class ArduinoTabbedPage : TabbedPage
                                   "\"hour2\":\"" + $"{hours[1]}" + "\",\"minute2\":\"" + $"{minutes[1]}" + "\"," +
                                   "\"hour3\":\"" + $"{hours[2]}" + "\",\"minute3\":\"" + $"{minutes[2]}" + "\"" + "}";
 
-                if (connectionMode == "WIFI")
+                if (Mode == ConnectionMode.WiFi)
                     await MqttService.PublishMessageAsync(message, $"{Device.Id}/servo");
 
-                else if (connectionMode == "BLUETOOTH")
+                else if (Mode == ConnectionMode.Bluetooth)
                     await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef3");
 
                 await DisplayAlert("Success", $"Feeder time successfully set", "OK");
@@ -178,10 +178,10 @@ public partial class ArduinoTabbedPage : TabbedPage
         if (isConfirmed) 
         {
             String message = " ";
-            if (connectionMode == "WIFI")
+            if (Mode == ConnectionMode.WiFi)
                 await MqttService.PublishMessageAsync(message, $"{Device.Id}/now");
 
-            else if (connectionMode == "BLUETOOTH")
+            else if (Mode == ConnectionMode.Bluetooth)
                 await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef4");
 
             await DisplayAlert("Success", "Feeder activated", "OK");
@@ -195,10 +195,10 @@ public partial class ArduinoTabbedPage : TabbedPage
         if (isConfirmed)
         {
             String message = " ";
-            if (connectionMode == "WIFI")
+            if (Mode == ConnectionMode.WiFi)
                 await MqttService.PublishMessageAsync(message, $"{Device.Id}/reset");
 
-            else if (connectionMode == "BLUETOOTH")
+            else if (Mode == ConnectionMode.Bluetooth)
                 await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef6");
 
             await DisplayAlert("Success", "Resetting Arduino. Expect disconnection in a moment.", "OK");
@@ -218,7 +218,7 @@ public partial class ArduinoTabbedPage : TabbedPage
 
             if (isConfirmed)
             {
-                if (connectionMode == "BLUETOOTH")
+                if (Mode == ConnectionMode.Bluetooth)
                 {
                     await BluetoothService.SendMessageAsync(Device.Id, ssid, "12345678-1234-5678-1234-56789abcdef7");
                     await BluetoothService.SendMessageAsync(Device.Id, pass, "12345678-1234-5678-1234-56789abcdef8");

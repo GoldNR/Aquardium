@@ -13,7 +13,6 @@ public partial class FeederTimePopup : Popup<string>
     public FeederTimePopup()
     {
         InitializeComponent();
-        //PeriodPicker.SelectedIndex = -1;
     }
 
     private void OnFeedCountChanged(object sender, EventArgs e)
@@ -119,7 +118,6 @@ public partial class FeederTimePopup : Popup<string>
             });
         }
 
-        // Serialize all feeding times into JSON
         var jsonResult = JsonSerializer.Serialize(feedTimes);
 
         await CloseAsync(jsonResult);
