@@ -7,7 +7,7 @@
 BLEService service("12345678-1234-5678-1234-56789abcdef0"); 
 BLECharacteristic tempCharacteristic("12345678-1234-5678-1234-56789abcdef1", BLENotify, 10);
 BLECharacteristic turbidityCharacteristic("12345678-1234-5678-1234-56789abcdef2", BLENotify, 10);
-BLECharacteristic servoCharacteristic("12345678-1234-5678-1234-56789abcdef3", BLEWrite, 30);
+BLECharacteristic servoCharacteristic("12345678-1234-5678-1234-56789abcdef3", BLEWrite, 100);
 BLECharacteristic feedNowCharacteristic("12345678-1234-5678-1234-56789abcdef4", BLEWrite, 5);
 BLECharacteristic timeLastFedCharacteristic("12345678-1234-5678-1234-56789abcdef5", BLENotify, 20);
 BLECharacteristic resetCharacteristic("12345678-1234-5678-1234-56789abcdef6", BLEWrite, 5);
@@ -52,7 +52,7 @@ void bleSetup() {
 }
 
 void bleLoop() {
-  Serial.println("BLE Loop started.");
+  //Serial.println("BLE Loop started.");
 
   BLE.poll();
   central = BLE.central();
@@ -63,7 +63,7 @@ void bleLoop() {
     timeLastFedCharacteristic.writeValue(timeLastFed.c_str(), false);
   }
 
-  Serial.println("BLE Loop finished.");
+  //Serial.println("BLE Loop finished.");
 }
 
 void onServoCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {
@@ -82,16 +82,30 @@ void onServoCharacteristicWritten(BLEDevice central, BLECharacteristic character
     return;
   }
 
-  int hour = doc["hour"];
-  int minute = doc["minute"];
+  int hour1 = doc["hour1"];
+  int hour2 = doc["hour2"];
+  int hour3 = doc["hour3"];
+  int minute1 = doc["minute1"];
+  int minute2 = doc["minute2"];
+  int minute3 = doc["minute3"];
 
-  EEPROM.put(0, hour);
-  EEPROM.put(1, minute);
+  EEPROM.put(0, hour1);
+  EEPROM.put(68, hour2);
+  EEPROM.put(70, hour3);
+  EEPROM.put(1, minute1);
+  EEPROM.put(69, minute2);
+  EEPROM.put(71, minute3);
 
   Serial.print("New time set: ");
-  Serial.print(hour);
+  Serial.print(hour1);
   Serial.print(":");
-  Serial.println(minute);
+  Serial.println(minute1);
+  Serial.print(hour2);
+  Serial.print(":");
+  Serial.println(minute2);
+  Serial.print(hour3);
+  Serial.print(":");
+  Serial.println(minute3);
 }
 
 void onFeedNowCharacteristicWritten(BLEDevice central, BLECharacteristic characteristic) {

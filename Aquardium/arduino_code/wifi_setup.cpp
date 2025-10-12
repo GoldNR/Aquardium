@@ -84,16 +84,30 @@ void callback(char* topic, byte* payload, unsigned int length) {
       return;
     }
 
-    int hour = doc["hour"];
-    int minute = doc["minute"];
+    int hour1 = doc["hour1"];
+    int hour2 = doc["hour2"];
+    int hour3 = doc["hour3"];
+    int minute1 = doc["minute1"];
+    int minute2 = doc["minute2"];
+    int minute3 = doc["minute3"];
 
-    EEPROM.put(0, hour);
-    EEPROM.put(1, minute);
+    EEPROM.put(0, hour1);
+    EEPROM.put(68, hour2);
+    EEPROM.put(70, hour3);
+    EEPROM.put(1, minute1);
+    EEPROM.put(69, minute2);
+    EEPROM.put(71, minute3);
 
     Serial.print("New time set: ");
-    Serial.print(hour);
+    Serial.print(hour1);
     Serial.print(":");
-    Serial.println(minute);
+    Serial.println(minute1);
+    Serial.print(hour2);
+    Serial.print(":");
+    Serial.println(minute2);
+    Serial.print(hour3);
+    Serial.print(":");
+    Serial.println(minute3);
   }
 
   else if (strcmp(topic, rotateNowTopic.c_str()) == 0) {
@@ -114,7 +128,7 @@ void wifiSetup() {
 }
 
 void wifiLoop() {
-  Serial.println("Wifi Loop started.");
+  //Serial.println("Wifi Loop started.");
 
   if (client.connected()) {
     client.publish("status", isOnlineMessage.c_str());
@@ -135,5 +149,5 @@ void wifiLoop() {
   }
   else reconnect();
 
-  Serial.println("Wifi Loop finished.");
+  //Serial.println("Wifi Loop finished.");
 }

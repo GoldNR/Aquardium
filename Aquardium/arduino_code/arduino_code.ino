@@ -14,8 +14,8 @@
  TAKEN ANALOG PINS: AO: Turbidity
 
  TAKEN EEPROM ADDRESSES:
-    1: Hour
-    2: Minute
+    1: Hour 1
+    2: Minute 1
     3: Time Last Fed (TLF) Month
     4: TLF Day
     5: TLF Year
@@ -23,6 +23,10 @@
     7: TLF Minute
     8-37: Network SSID
     38-67: Network Password
+    68: Hour 2
+    69: Minute 2
+    70: Hour 3
+    71: Minute 3
 */
 
 const String deviceID PROGMEM = "arduino-1";          //Rename with an available name, must contain "arduino"

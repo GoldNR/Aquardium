@@ -13,7 +13,7 @@ void firebaseSetup() {
 }
 
 void firebaseLoop() {
-  Serial.println("Firebase Loop started.");
+  //Serial.println("Firebase Loop started.");
 
   if (WiFi.status() == WL_CONNECTED) {
     String jsonData = "{\"temperature\": " + tempReading + 
@@ -39,5 +39,5 @@ void firebaseLoop() {
     */
   }
 
-  Serial.println("Firebase Loop finished.");
+  //Serial.println("Firebase Loop finished.");
 }

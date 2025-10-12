@@ -7,11 +7,11 @@ String turbMessage;
 void turbiditySetup() {}
 
 void turbidityLoop() {
-  Serial.println("Turbidity Loop started.");
+  //Serial.println("Turbidity Loop started.");
 
   turbValue = analogRead(A0);
   turbReading = String(turbValue);
   // distance when empty: 58
 
-  Serial.println("Turbidity Loop finished.");
+  //Serial.println("Turbidity Loop finished.");
 }

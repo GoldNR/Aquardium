@@ -106,9 +106,7 @@ public partial class ArduinoTabbedPage : TabbedPage
         WeakReferenceMessenger.Default.Register<TimeLastFedUpdateMessage>(this, (recipient, message) =>
         {
             if (message.Value.ArduinoId == Device.Id)
-            {
                 TimeValue.Text = message.Value.TLF == "0/0/0 0:0" ? "RTC Module disconnected" : $"{message.Value.TLF}";
-            }
         });
     }
 
@@ -139,15 +137,28 @@ public partial class ArduinoTabbedPage : TabbedPage
         var jsonResult = await this.ShowPopupAsync<string>(new FeederTimePopup());
         if (jsonResult.Result != null)
         {
-            var result = JsonSerializer.Deserialize<Dictionary<string, int>>(jsonResult.Result);
-            int hour = result["Hour"];
-            int minute = result["Minute"];
+            int[] hours = new int[3] {99, 99, 99};
+            int[] minutes = new int[3] { 99, 99, 99};
+            var result = JsonSerializer.Deserialize<List<Dictionary<string, int>>>(jsonResult.Result);
 
-            bool isConfirmed = await DisplayAlert("Confirm", $"Set feeder time to {hour:D2}:{minute:D2}?", "Yes", "Cancel");
+            for (int i = 0; i < result.Count; i++)
+            {
+                var dict = result[i];
+
+                if (dict.TryGetValue($"hour{i + 1}", out var hourValue))
+                    hours[i] = hourValue;
+
+                if (dict.TryGetValue($"minute{i + 1}", out var minuteValue))
+                    minutes[i] = minuteValue;
+            }
+
+            bool isConfirmed = await DisplayAlert("Confirm", $"Review the times you set. Are you sure?", "Yes", "Cancel");
 
             if (isConfirmed)
             {
-                String message = "{\"hour\":\"" + $"{hour:D2}" + "\",\"minute\":\"" + $"{minute:D2}" + "\"}";
+                String message = "{\"hour1\":\"" + $"{hours[0]}" + "\",\"minute1\":\"" + $"{minutes[0]}" + "\"," + 
+                                  "\"hour2\":\"" + $"{hours[1]}" + "\",\"minute2\":\"" + $"{minutes[1]}" + "\"," +
+                                  "\"hour3\":\"" + $"{hours[2]}" + "\",\"minute3\":\"" + $"{minutes[2]}" + "\"" + "}";
 
                 if (connectionMode == "WIFI")
                     await MqttService.PublishMessageAsync(message, $"{Device.Id}/servo");
@@ -155,7 +166,7 @@ public partial class ArduinoTabbedPage : TabbedPage
                 else if (connectionMode == "BLUETOOTH")
                     await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef3");
 
-                await DisplayAlert("Success", $"Feeder time set to {hour:D2}:{minute:D2}", "OK");
+                await DisplayAlert("Success", $"Feeder time successfully set", "OK");
             }
         }
     }

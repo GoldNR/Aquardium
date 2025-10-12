@@ -22,7 +22,9 @@ extern int hour;
 extern int minute;
 extern int second;
 extern int weekday;
-extern bool hasRotatedForTheDay;
+extern bool hasRotatedForTheDay1;
+extern bool hasRotatedForTheDay2;
+extern bool hasRotatedForTheDay3;
 extern String timeLastFed;
 extern String timeLastFedMessage;
 

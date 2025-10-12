@@ -13,10 +13,10 @@ void tempSetup() {
 }
 
 void tempLoop() {
-  Serial.println("Temp Loop started.");
+  //Serial.println("Temp Loop started.");
 
   tempSensor.requestTemperatures();
   tempReading = dtostrf(tempSensor.getTempCByIndex(0), 1, 2, tempBuffer);
   
-  Serial.println("Temp Loop finished.");
+  //Serial.println("Temp Loop finished.");
 }

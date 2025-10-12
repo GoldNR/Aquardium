@@ -9,7 +9,9 @@ Servo servo;
 
 int targetHour, targetMinute, pos, centerPos = 90,
   year, month, day, hour, minute, second, weekday;
-bool hasRotatedForTheDay;
+bool hasRotatedForTheDay1 = false,
+     hasRotatedForTheDay2 = false,
+     hasRotatedForTheDay3 = false;
 String timeLastFed;
 String timeLastFedMessage;
 
@@ -94,34 +96,44 @@ void servoSetup() {
 }
 
 void servoLoop() {
-  Serial.println("Servo Loop started.");
+  //Serial.println("Servo Loop started.");
 
   rtc.refresh();
 
-  targetHour = (int) EEPROM.read(0);
-  targetMinute = (int) EEPROM.read(1);
+  int targetHour1 = (int) EEPROM.read(0);
+  int targetMinute1 = (int) EEPROM.read(1);
+  int targetHour2 = (int) EEPROM.read(68);
+  int targetMinute2 = (int) EEPROM.read(69);
+  int targetHour3 = (int) EEPROM.read(70);
+  int targetMinute3 = (int) EEPROM.read(71);
+
+  int currentHour, currentMinute;
 
   if (WiFi.status() == WL_CONNECTED) {
     if (timeClient.update()) {
-      if (timeClient.getHours() == targetHour && timeClient.getMinutes() == targetMinute && hasRotatedForTheDay == false) {
-        rotateServo();
-        hasRotatedForTheDay = true;
-      }
+      currentHour = timeClient.getHours();
+      currentMinute = timeClient.getMinutes();
+    }
 
-      else if (timeClient.getHours() <= targetHour && timeClient.getMinutes() < targetMinute && hasRotatedForTheDay == true)
-        hasRotatedForTheDay = false;
+    else {
+      currentHour = rtc.hour();
+      currentMinute = rtc.minute();
     }
   }
 
-  else {
-    if (rtc.hour() == targetHour && rtc.minute() == targetMinute && hasRotatedForTheDay == false) {
+  auto checkAndRotate = [&](int targetHour, int targetMinute, bool &hasRotatedFlag) {
+    if (currentHour == targetHour && currentMinute == targetMinute && !hasRotatedFlag) {
       rotateServo();
-      hasRotatedForTheDay = true;
+      hasRotatedFlag = true;
     }
+    else if ((currentHour < targetHour || (currentHour == targetHour && currentMinute < targetMinute)) && hasRotatedFlag) {
+      hasRotatedFlag = false;
+    }
+  };
 
-    else if (rtc.hour() <= targetHour && rtc.minute() < targetMinute && hasRotatedForTheDay == true)
-      hasRotatedForTheDay = false;
-  }
+  checkAndRotate(targetHour1, targetMinute1, hasRotatedForTheDay1);
+  checkAndRotate(targetHour2, targetMinute2, hasRotatedForTheDay2);
+  checkAndRotate(targetHour3, targetMinute3, hasRotatedForTheDay3);
 
   timeLastFed = String(EEPROM.read(3)) + "/"
               + String(EEPROM.read(4)) + "/"
@@ -129,5 +141,5 @@ void servoLoop() {
               + String(EEPROM.read(6)) + ":"
               + String(EEPROM.read(7));
 
-  Serial.println("Servo Loop finished.");
+  //Serial.println("Servo Loop finished.");
 }

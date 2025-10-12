@@ -5,26 +5,54 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:Class="Aquardium.FeederTimePopup"
     x:TypeArguments="x:String"
-    WidthRequest="275"
-    HeightRequest="200"
+    WidthRequest="300"
     Padding="20"
     BackgroundColor="#2C2C2E">
 
     <VerticalStackLayout Spacing="15">
-        <Label Text="Set Feeder Time" FontSize="20" HorizontalOptions="Center" />
 
-        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-            <Entry x:Name="HourEntry" Placeholder="HH" Keyboard="Numeric" WidthRequest="60"/>
-            <Entry x:Name="MinuteEntry" Placeholder="MM" Keyboard="Numeric" WidthRequest="60"/>
-            <Picker x:Name="PeriodPicker" WidthRequest="60">
+        <Label 
+            Text="Set Feeding Schedule" 
+            FontSize="20" 
+            TextColor="White"
+            HorizontalOptions="Center" />
+
+        <!-- ComboBox (Picker) for number of feedings -->
+        <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
+            <Label Text="Feedings per day:" 
+                   TextColor="White"
+                   VerticalOptions="Center" />
+            <Picker x:Name="FeedCountPicker" 
+                    WidthRequest="100"
+                    SelectedIndexChanged="OnFeedCountChanged">
                 <Picker.ItemsSource>
                     <x:Array Type="{x:Type x:String}">
-                        <x:String>AM</x:String>
-                        <x:String>PM</x:String>
+                        <x:String>1</x:String>
+                        <x:String>2</x:String>
+                        <x:String>3</x:String>
                     </x:Array>
                 </Picker.ItemsSource>
             </Picker>
         </HorizontalStackLayout>
+
+        <!-- Container for dynamically showing time inputs -->
+        <VerticalStackLayout x:Name="TimeInputsContainer" Spacing="10">
+            <!-- Default: one set of time entries -->
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                <Entry x:Name="HourEntry1" Placeholder="HH" Keyboard="Numeric" WidthRequest="60"/>
+                <Entry x:Name="MinuteEntry1" Placeholder="MM" Keyboard="Numeric" WidthRequest="60"/>
+                <Picker x:Name="PeriodPicker1" WidthRequest="60">
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:String}">
+                            <x:String>AM</x:String>
+                            <x:String>PM</x:String>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- Buttons -->
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -35,32 +63,26 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Empty space filler -->
-            <BoxView
-                Grid.Column="0"
-                BackgroundColor="Transparent"/>
-            
-            <!-- Save Button -->
-            <Button 
-                Text="Save"
-                TextColor="White"
-                Clicked="OnSaveClicked" 
-                Grid.Column="2"
-                BackgroundColor="Transparent"
-                BorderColor="Transparent"
-                Padding="10,5"
-                />
+            <BoxView Grid.Column="0" BackgroundColor="Transparent"/>
 
-            <!-- Cancel Button -->
             <Button 
-                Text="Cancel" 
+                Text="Cancel"
                 TextColor="White"
-                Clicked="OnCancelClicked" 
+                Clicked="OnCancelClicked"
                 Grid.Column="1"
                 BackgroundColor="Transparent"
                 BorderColor="Transparent"
-                Padding="10,5"
-                />
+                Padding="10,5"/>
+
+            <Button 
+                Text="Save"
+                TextColor="White"
+                Clicked="OnSaveClicked"
+                Grid.Column="2"
+                BackgroundColor="Transparent"
+                BorderColor="Transparent"
+                Padding="10,5"/>
         </Grid>
+
     </VerticalStackLayout>
 </toolkit:Popup>
