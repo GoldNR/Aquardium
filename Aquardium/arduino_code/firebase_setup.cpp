@@ -2,6 +2,7 @@
 #include "temperature_setup.h"
 #include "ultrasonic_setup.h"
 #include "turbidity_setup.h"
+#include "pH_setup.h"
 #include "CONFIDENTIAL.h"
 
 WiFiSSLClient wifi;
@@ -13,12 +14,12 @@ void firebaseSetup() {
 }
 
 void firebaseLoop() {
-  //Serial.println("Firebase Loop started.");
-
   if (WiFi.status() == WL_CONNECTED) {
     String jsonData = "{\"temperature\": " + tempReading + 
                       ", \"ultrasonic\": " + String(average) + 
-                      ", \"turbidity\": " + turbReading + "}";
+                      ", \"turbidity\": " + turbReading +
+                      ", \"ph\": " + pHReading + 
+                      ", \"voltage\": " + voltage_str + "}";
 
     httpClient.beginRequest();
     httpClient.patch(path);
@@ -28,7 +29,6 @@ void firebaseLoop() {
     httpClient.print(jsonData);
     httpClient.endRequest();
 
-    /*
     int statusCode = httpClient.responseStatusCode();
     String response = httpClient.responseBody();
 
@@ -36,8 +36,6 @@ void firebaseLoop() {
     Serial.println(statusCode);
     Serial.print("Response: ");
     Serial.println(response);
-    */
-  }
 
-  //Serial.println("Firebase Loop finished.");
+  }
 }

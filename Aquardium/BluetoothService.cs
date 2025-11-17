@@ -10,19 +10,29 @@ namespace Aquardium;
 public class BluetoothService
 {
     private static IAdapter _adapter;
-    private readonly Label statusLabel;
-    private readonly Button reconnectButton;
+    private Label statusLabel;
+    private Button reconnectButton;
+    private Border devicesBorder;
+    private CollectionView devicesList;
     private static Dictionary<string, IDevice> connectedDevices = new();
+    private MainPage mainPage;
 
-    public BluetoothService(Label statusLabel, Button reconnectButton)
+    public BluetoothService(Label statusLabel, Button reconnectButton, Border devicesBorder, CollectionView devicesList)
     {
         this.statusLabel = statusLabel;
         this.reconnectButton = reconnectButton;
+        this.devicesBorder = devicesBorder;
+        this.devicesList = devicesList;
         this.statusLabel.Text = "Connecting via Bluetooth...";
         _adapter = CrossBluetoothLE.Current.Adapter;
         _adapter.DeviceConnected += HandleArduinoConnected;
         _adapter.DeviceConnectionLost += HandleArduinoDisconnected;
+
+        mainPage = new MainPage { Mode = ConnectionMode.Bluetooth };
+        devicesList.ItemsSource = mainPage.Devices;
     }
+
+    public MainPage MainPage => mainPage;
 
     public void Connect()
     {
@@ -36,12 +46,14 @@ public class BluetoothService
                     try
                     {
                         await _adapter.ConnectToDeviceAsync(device);
-                        statusLabel.Text = $"Connected to {device.Name}! Please wait...";
+                        statusLabel.Text = "Found device(s)! Please wait...";
                     }
                     catch (DeviceConnectionException dce)
                     {
                         statusLabel.Text = $"Failed to connect: {dce.Message}";
                         reconnectButton.IsEnabled = true;
+                        reconnectButton.IsVisible = true;
+                        devicesList.IsVisible = false;
                     }
                 });
             }
@@ -54,7 +66,7 @@ public class BluetoothService
 
         MainThread.BeginInvokeOnMainThread (() =>
         {
-            if (Application.Current.MainPage is MainPage mainPage)
+            if (Application.Current.MainPage is MainPage)
             {
                 if (mainPage.Devices == null)
                     mainPage.Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice>();
@@ -78,22 +90,28 @@ public class BluetoothService
             else if (Application.Current.MainPage is NavigationPage navPage &&
                 navPage.CurrentPage is ConnectionPage)
             {
-                var device = new ArduinoDevice
+                if (mainPage.Devices == null)
+                    mainPage.Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice>();
+
+                var device = mainPage.Devices.FirstOrDefault(d => d.Id == e.Device.Name);
+                if (device == null)
                 {
-                    Id = e.Device.Name,
-                    Status = "Connected"
-                };
+                    device = new ArduinoDevice { Id = e.Device.Name, Status = "Connected" };
 
-                var newMainPage = new MainPage
+                    connectedDevices.Add(e.Device.Name, e.Device);
+                    mainPage.Devices.Add(device);
+                    if (mainPage.Devices.Count > 0)
+                    {
+                        devicesBorder.IsVisible = true;
+                        statusLabel.Text = "Choose an Arduino to view stats and controls of.";
+                    }
+                }
+
+                foreach (var arduino in mainPage.Devices)
                 {
-                    Mode = ConnectionMode.Bluetooth,
-                    Detail = new NavigationPage(new ArduinoTabbedPage(device, ConnectionMode.Bluetooth))
-                };
-
-                newMainPage.Devices.Add(device);
-                connectedDevices.Add(e.Device.Name, e.Device);
-
-                Application.Current.MainPage = newMainPage;
+                    arduino.Type = Preferences.Get($"fishType_{arduino.Id}", "Unknown");
+                    arduino.Quantity = Preferences.Get($"fishQuantity_{arduino.Id}", "Unknown");
+                }
             }
         });
     }

@@ -32,6 +32,20 @@ public partial class FeederTimePopup : Popup<string>
                 WidthRequest = 60,
                 TextColor = Colors.White
             };
+            hourEntry.TextChanged += (o, e) =>
+            {
+                if (int.TryParse(hourEntry.Text, out int hour))
+                {
+                    if (hour < 1)
+                    {
+                        hourEntry.Text = "1";
+                    }
+                    else if (hour > 12)
+                    {
+                        hourEntry.Text = "12";
+                    }
+                }
+            };
 
             var minuteEntry = new Entry
             {
@@ -39,6 +53,20 @@ public partial class FeederTimePopup : Popup<string>
                 Keyboard = Keyboard.Numeric,
                 WidthRequest = 60,
                 TextColor = Colors.White
+            };
+            minuteEntry.TextChanged += (o, e) =>
+            {
+                if (int.TryParse(minuteEntry.Text, out int minute))
+                {
+                    if (minute < 0)
+                    {
+                        minuteEntry.Text = "0";
+                    }
+                    else if (minute > 59)
+                    {
+                        minuteEntry.Text = "59";
+                    }
+                }
             };
 
             var periodPicker = new Picker

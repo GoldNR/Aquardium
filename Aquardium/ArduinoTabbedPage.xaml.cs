@@ -1,10 +1,9 @@
-using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Extensions;
-using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Maui.Platform;
-using System.Runtime.CompilerServices;
+using Plugin.Firebase.CloudMessaging;
+using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace Aquardium;
 
@@ -12,6 +11,7 @@ public partial class ArduinoTabbedPage : TabbedPage
 {
     private ArduinoDevice Device { get; set; }
     private ConnectionMode Mode { get; set; }
+    private static int simCount = 1;
 
     public ArduinoTabbedPage(ArduinoDevice device, ConnectionMode connectionMode)
 	{
@@ -30,10 +30,13 @@ public partial class ArduinoTabbedPage : TabbedPage
                 HeightRequest = 100
             };
             Grid.SetRow(wifiSetupButton, 2);
-            Grid.SetColumn(wifiSetupButton, 0);
+            Grid.SetColumn(wifiSetupButton, 1);
             wifiSetupButton.Clicked += OnWifiSetupClicked;
             controlButtonGrid.Children.Add(wifiSetupButton);
         }
+
+        Device.Type = Preferences.Get("fishType_" + Device.Id, null);
+        Device.Quantity = Preferences.Get("fishQuantity_" + Device.Id, null);
     }
 
     private async Task SetPageTitleAsync()
@@ -67,41 +70,62 @@ public partial class ArduinoTabbedPage : TabbedPage
         WeakReferenceMessenger.Default.Register<TemperatureUpdateMessage>(this, (recipient, message) =>
         {
             if (message.Value.ArduinoId == Device.Id)
+            {
                 TemperatureValue.Text = message.Value.Temperature == "-127.00" ? "Sensor disconnected" : $"{message.Value.Temperature} °C";
+
+                var temp = double.Parse(message.Value.Temperature);
+                if (temp <= 18.0d || temp >= 31.0d)
+                    TemperatureValue.TextColor = Colors.Red;
+
+                else
+                    TemperatureValue.TextColor = Colors.Green;
+            }
         });
         WeakReferenceMessenger.Default.Register<TurbidityUpdateMessage>(this, (recipient, message) =>
         {
-            int sensorValue = int.Parse(message.Value.Turbidity);
-            if (sensorValue <= 1023 && sensorValue >= 800)
+            if (message.Value.ArduinoId == Device.Id)
             {
-                TurbidityValue.Text = "Clear";
-                TurbidityValue.TextColor = Colors.Green;
-            }
-            else if (sensorValue <= 799 && sensorValue >= 600)
-            {
-                TurbidityValue.Text = "Mildly Cloudy";
-                TurbidityValue.TextColor = Colors.Yellow;
-            }
-            else if (sensorValue <= 599 && sensorValue >= 300)
-            {
-                TurbidityValue.Text = "Cloudy";
-                TurbidityValue.TextColor = Colors.Orange;
-            }
-            else if (sensorValue <= 299 && sensorValue >= 0)
-            {
-                TurbidityValue.Text = "Very Cloudy";
-                TurbidityValue.TextColor = Colors.Red;
-            }
-            else
-            {
-                TurbidityValue.Text = "Sensor disconnected";
-                TurbidityValue.TextColor = Colors.Gray;
+                int sensorValue = int.Parse(message.Value.Turbidity);
+                if (sensorValue <= 1023 && sensorValue >= 800)
+                {
+                    TurbidityValue.Text = "Clear";
+                    TurbidityValue.TextColor = Colors.Green;
+                }
+                else if (sensorValue <= 799 && sensorValue >= 600)
+                {
+                    TurbidityValue.Text = "Mildly Cloudy";
+                    TurbidityValue.TextColor = Colors.Yellow;
+                }
+                else if (sensorValue <= 599 && sensorValue >= 300)
+                {
+                    TurbidityValue.Text = "Cloudy";
+                    TurbidityValue.TextColor = Colors.Orange;
+                }
+                else if (sensorValue <= 299 && sensorValue >= 0)
+                {
+                    TurbidityValue.Text = "Very Cloudy";
+                    TurbidityValue.TextColor = Colors.Red;
+                }
+                else
+                {
+                    TurbidityValue.Text = "Sensor disconnected";
+                    TurbidityValue.TextColor = Colors.Gray;
+                }
             }
         });
         WeakReferenceMessenger.Default.Register<pHUpdateMessage>(this, (recipient, message) =>
         {
             if (message.Value.ArduinoId == Device.Id)
+            {
                 pHValue.Text = message.Value.pH == "-1.00" ? "Sensor disconnected" : $"{message.Value.pH}";
+
+                double ph = double.Parse(pHValue.Text);
+                if (ph < 6 || ph > 8)
+                    pHValue.TextColor = Colors.Red;
+
+                else
+                    pHValue.TextColor = Colors.Green;
+            }
         });
         WeakReferenceMessenger.Default.Register<TimeLastFedUpdateMessage>(this, (recipient, message) =>
         {
@@ -138,7 +162,7 @@ public partial class ArduinoTabbedPage : TabbedPage
         if (jsonResult.Result != null)
         {
             int[] hours = new int[3] {99, 99, 99};
-            int[] minutes = new int[3] { 99, 99, 99};
+            int[] minutes = new int[3] {99, 99, 99};
             var result = JsonSerializer.Deserialize<List<Dictionary<string, int>>>(jsonResult.Result);
 
             for (int i = 0; i < result.Count; i++)
@@ -183,8 +207,6 @@ public partial class ArduinoTabbedPage : TabbedPage
 
             else if (Mode == ConnectionMode.Bluetooth)
                 await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef4");
-
-            await DisplayAlert("Success", "Feeder activated", "OK");
         }
     }
 
@@ -202,6 +224,25 @@ public partial class ArduinoTabbedPage : TabbedPage
                 await BluetoothService.SendMessageAsync(Device.Id, message, "12345678-1234-5678-1234-56789abcdef6");
 
             await DisplayAlert("Success", "Resetting Arduino. Expect disconnection in a moment.", "OK");
+        }
+    }
+
+    private void OnNewProfileClicked(object sender, EventArgs e)
+    {
+        if (Application.Current.MainPage is MainPage mainPage)
+        {
+            var arduino = new ArduinoDevice
+            {
+                Id = $"New Profile {simCount}",
+                Status = "Online"
+            };
+            mainPage.Devices.Add(arduino);
+            mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(arduino, ConnectionMode.Simulation));
+            simCount++;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("Not in mainPage");
         }
     }
 
@@ -229,6 +270,45 @@ public partial class ArduinoTabbedPage : TabbedPage
                 
             }
         }
+    }
+    /*
+    private async void OnSetPHClicked(object sender, EventArgs e)
+    {
+        var ph = await this.ShowPopupAsync<string>(new SetPHPopup());
+        if (ph != null)
+        {
+            if (Mode == ConnectionMode.WiFi)
+            {
+                await MqttService.PublishMessageAsync("{\"id\":\"" + "arduino-1" + "\",\"pH\":\"" + $"{ph.Result}" + "\"}", "sensors/pH");
+
+                try
+                {
+                    var client = new HttpClient();
+                    string url = $"{CONFIDENTIAL.DATABASE_URL}/feeders/{Device.Id}.json?auth={CONFIDENTIAL.DATABASE_SECRET}";
+
+                    var response = await client.GetAsync(url);
+                    string responseBody = await response.Content.ReadAsStringAsync();
+
+                    var newToken = new Dictionary<string, int>
+                    {
+                        { "ph", int.Parse(ph.Result) }
+                    };
+                    string json = JsonSerializer.Serialize(newToken);
+                    await client.PatchAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to get token: {ex.Message}");
+                }
+            }
+        }
+    }*/
+
+    private async void OnSaveClicked(object? sender, EventArgs e)
+    {
+        Preferences.Set("fishType_" + Device.Id, TypeEntry.Text);
+        Preferences.Set("fishQuantity_" + Device.Id, QuantityEntry.Text);
+        await DisplayAlert("Success", "Fish profile saved.", "OK");
     }
 
 }

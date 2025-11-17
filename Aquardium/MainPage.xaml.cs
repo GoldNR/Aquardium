@@ -29,10 +29,13 @@ public class ArduinoDevice
 {
     public string Id { get; set; }
     public string Status { get; set; }
+    public string Type { get; set; }
+    public string Quantity { get; set; }
 }
 
 public enum ConnectionMode
 {
     Bluetooth,
-    WiFi
+    WiFi,
+    Simulation
 }

@@ -12,12 +12,18 @@ public class MqttService
     private MqttClientOptions mqttOptions;
     private Label statusLabel;
     private Button reconnectButton;
+    private Border devicesBorder;
+    private CollectionView devicesList;
+    private MainPage mainPage;
 
-    public MqttService(Label statusLabel, Button reconnectButton)
+    public MqttService(Label statusLabel, Button reconnectButton, Border devicesBorder, CollectionView devicesList)
     {
         this.statusLabel = statusLabel;
         this.reconnectButton = reconnectButton;
+        this.devicesBorder = devicesBorder;
+        this.devicesList = devicesList;
         this.statusLabel.Text = "Connecting to Internet...";
+
         mqttClient = new MqttClientFactory().CreateMqttClient();
         mqttOptions = new MqttClientOptionsBuilder()
             .WithClientId("Aquardium")
@@ -25,7 +31,12 @@ public class MqttService
             .WithCleanSession()
             .Build();
         mqttClient.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
+
+        mainPage = new MainPage { Mode = ConnectionMode.WiFi };
+        devicesList.ItemsSource = mainPage.Devices;
     }
+
+    public MainPage MainPage => mainPage;
 
     public async Task ConnectAsync()
     {
@@ -58,6 +69,8 @@ public class MqttService
             {
                 statusLabel.Text = "No Internet connection!";
                 reconnectButton.IsEnabled = true;
+                reconnectButton.IsVisible = true;
+                devicesBorder.IsVisible = false;
             });
         }
     }
@@ -118,9 +131,7 @@ public class MqttService
 
     private void HandleArduinoOnline(string arduinoId)
     {
-        statusLabel.Text = "Arduino connected! Please wait...";
-
-        if (Application.Current.MainPage is MainPage mainPage)
+        if (Application.Current.MainPage is MainPage)
         {
             if (mainPage.Devices == null)
                 mainPage.Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice>();
@@ -144,27 +155,34 @@ public class MqttService
         else if (Application.Current.MainPage is NavigationPage navPage &&
             navPage.CurrentPage is ConnectionPage)
         {
-            var device = new ArduinoDevice
-            {
-                Id = arduinoId,
-                Status = "Online"
-            };
-            RegisterDeviceTokenAsync(arduinoId);
-            var newMainPage = new MainPage
-            {
-                Mode = ConnectionMode.WiFi,
-                Detail = new NavigationPage(new ArduinoTabbedPage(device, ConnectionMode.WiFi))
-            };
+            if (mainPage.Devices == null)
+                mainPage.Devices = new System.Collections.ObjectModel.ObservableCollection<ArduinoDevice>();
 
-            newMainPage.Devices.Add(device);
+            var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
+            if (device == null) 
+            {
+                device = new ArduinoDevice { Id = arduinoId, Status = "Online" };
+                RegisterDeviceTokenAsync(arduinoId);
 
-            Application.Current.MainPage = newMainPage;
+                mainPage.Devices.Add(device);
+                if (mainPage.Devices.Count > 0)
+                {
+                    devicesBorder.IsVisible = true;
+                    statusLabel.Text = "Choose an Arduino to view stats and controls of.";
+                }
+            }
+
+            foreach (var arduino in mainPage.Devices)
+            {
+                arduino.Type = Preferences.Get($"fishType_{arduino.Id}", "Unknown");
+                arduino.Quantity = Preferences.Get($"fishQuantity_{arduino.Id}", "Unknown");
+            }
         }
     }
 
     private void HandleArduinoOffline(string arduinoId)
     {
-        if (Application.Current?.MainPage is MainPage mainPage)
+        if (Application.Current?.MainPage is MainPage)
         {
             var device = mainPage.Devices.FirstOrDefault(d => d.Id == arduinoId);
 
@@ -191,7 +209,7 @@ public class MqttService
                 "OK"
             );
 
-            if (Application.Current.MainPage is MainPage mainPage && mainPage.Devices.Any(s => s.Status == "Online"))
+            if (Application.Current.MainPage is MainPage && mainPage.Devices.Any(s => s.Status == "Online"))
                 reconnected = true;
         }
     }

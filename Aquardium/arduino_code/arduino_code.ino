@@ -11,11 +11,13 @@
     2: Temperature              7: Ultrasonic TRIG
     6: Ultrasonic ECHO          9: Servo
     
- TAKEN ANALOG PINS: AO: Turbidity
+ TAKEN ANALOG PINS:
+    A0: Turbidity
+    A1: pH
 
  TAKEN EEPROM ADDRESSES:
-    1: Hour 1
-    2: Minute 1
+    1: Hour
+    2: Minute
     3: Time Last Fed (TLF) Month
     4: TLF Day
     5: TLF Year
@@ -40,9 +42,9 @@ void setup() {
   firebaseSetup();
   tempSetup();
   ussSetup();
-  pHSetup();
   servoSetup();
   turbiditySetup();
+  pHSetup();
 }
 
 void loop() {
@@ -52,21 +54,22 @@ void loop() {
   wifiLoop();
   BLEPoll();
 
-  firebaseLoop();
-  BLEPoll();
+  
 
   tempLoop();
-  BLEPoll();
 
+  BLEPoll();
   ussLoop();
-  BLEPoll();
 
-  pHLoop();
   BLEPoll();
-
   servoLoop();
-  BLEPoll();
 
+  BLEPoll();
   turbidityLoop();
+
+  BLEPoll();
+  pHLoop();
+
+  firebaseLoop();
   BLEPoll();
 }

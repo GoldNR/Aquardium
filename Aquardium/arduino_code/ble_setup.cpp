@@ -26,6 +26,9 @@ void writeCharArrayToEEPROM(int startAddr, const char* data, int maxLen) {
 }
 
 void bleSetup() {
+  //writeCharArrayToEEPROM(8, "OPPO F7", 30);
+  //writeCharArrayToEEPROM(38, "LoveHuTao", 30);
+
   BLE.setLocalName(deviceID.c_str());
   BLE.setDeviceName(deviceID.c_str());
   if (!BLE.begin()) {

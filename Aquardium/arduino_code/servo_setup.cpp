@@ -60,20 +60,12 @@ void epochToDateTime(unsigned long epoch, int &year, int &month, int &day, int &
 
 void rotateServo() {
   servo.write(0);
-  delay(500);
+  delay(300);
 
   servo.write(180);
-  delay(500);
+  delay(335);
 
   servo.write(90);
-
-  /*
-  servo.write(0);
-  delay(550);
-
-  servo.write(90);
-  delay(3000);
-  */
 
   EEPROM.put(3, rtc.month());
   EEPROM.put(4, rtc.day());

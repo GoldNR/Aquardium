@@ -20,12 +20,25 @@
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="pH Level:"            FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="pHValue"            x:DataType="x:String"/>
+                        <Label  Text="--"                    FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="pHValue"            x:DataType="x:String"/>
                     </Grid>
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                         <Label  Text="Time Last Fed:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
                         <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TimeValue"          x:DataType="x:String"/>
                     </Grid>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto">
+                        <Label  Text="Type of fish:"        FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                        <Entry  x:Name="TypeEntry"          Text="{Binding Type}"        Placeholder="--"            Grid.Column="1"     WidthRequest="100"  HorizontalOptions="End"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto">
+                        <Label  Text="Quantity of fish:"    FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
+                        <Entry  x:Name="QuantityEntry"      Text="{Binding Quantity}"    Placeholder="--"            Grid.Column="1"     WidthRequest="100"  HorizontalOptions="End"     Keyboard="Numeric"/>
+                    </Grid>
+                    <Button Text="Save" HorizontalOptions="End" WidthRequest="70" Clicked="OnSaveClicked"/>
                 </VerticalStackLayout>
             </ScrollView>
         </ContentPage>
@@ -77,6 +90,22 @@
                         Text="Reset Arduino"
                         BackgroundColor="#2196F3"
                         Clicked="OnResetArduinoClicked"/>
+
+                    <!-- NEW PROFILE -->
+                    <Button Grid.Row="2"
+                        Grid.Column="0"
+                        HeightRequest="100"
+                        Text="Create New Profile"
+                        BackgroundColor="#2196F3"
+                        Clicked="OnNewProfileClicked"/>
+
+                    <!-- Set PH -->
+                    <!--<Button Grid.Row="2"
+                        Grid.Column="0"
+                        HeightRequest="100"
+                        Text="Test"
+                        BackgroundColor="#2196F3"
+                        Clicked="OnSetPHClicked"/>-->
                 </Grid>
             </ScrollView>
         </ContentPage>

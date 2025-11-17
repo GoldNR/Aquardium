@@ -34,6 +34,8 @@ void connectToWifi() {
   Serial.println("Connecting to WiFi...");
   String ssid = readStringFromEEPROM(8);
   String pass = readStringFromEEPROM(38);
+  Serial.println(readStringFromEEPROM(8));
+  Serial.println(readStringFromEEPROM(38));
 
   WiFi.begin(ssid.c_str(), pass.c_str());
 
