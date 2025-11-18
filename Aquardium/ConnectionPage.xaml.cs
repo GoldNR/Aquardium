@@ -49,9 +49,13 @@ public partial class ConnectionPage : ContentPage
 
     private void DevicesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        
         if (e.CurrentSelection.FirstOrDefault() is ArduinoDevice selectedDevice)
         {
-            mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(selectedDevice, ConnectionMode.WiFi));
+            mainPage.Detail = new NavigationPage(new ArduinoTabbedPage(selectedDevice,
+                Connectivity.Current.NetworkAccess == NetworkAccess.Internet ? ConnectionMode.WiFi :
+                CrossBluetoothLE.Current.IsOn ? ConnectionMode.Bluetooth :
+                ConnectionMode.Simulation));
             Application.Current.MainPage = mainPage;
         }
         ((CollectionView)sender).SelectedItem = null;
