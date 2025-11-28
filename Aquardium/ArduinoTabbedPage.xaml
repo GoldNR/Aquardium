@@ -3,33 +3,39 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Aquardium.ArduinoTabbedPage">
     <TabbedPage.Children>
-        <ContentPage Title="Sensors">
+        <ContentPage Title="Sensors" BackgroundColor="#1055C9">
             <ScrollView>
                 <VerticalStackLayout Padding="20" Spacing="20">
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="Status:"              FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="{Binding Status}"     FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="StatusValue"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="Temperature:"         FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="-- &#176;C"           FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TemperatureValue"   x:DataType="x:String"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="Water Quality:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"     x:DataType="x:String"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="pH Level:"            FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="--"                    FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="pHValue"            x:DataType="x:String"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                        <Label  Text="Time Last Fed:"       FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
-                        <Label  Text="--"                   FontSize="16"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TimeValue"          x:DataType="x:String"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto"/>
+                    <Border Padding="20" StrokeShape="RoundRectangle 30" BackgroundColor="#05339C" Stroke="Transparent">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                            <Label  Text="Status:"              FontSize="14"       Grid.Column="0"     VerticalOptions="Center"/>
+                            <Label  Text="{Binding Status}"     FontSize="14"       Grid.Column="1"     VerticalOptions="Center"    x:Name="StatusValue"/>
+                        </Grid>
+                    </Border>
+                    <Border Padding="20" StrokeShape="RoundRectangle 30" BackgroundColor="#05339C" Stroke="Transparent">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                            <Label  Text="Temperature:"         FontSize="14"       Grid.Column="0"     VerticalOptions="Center"/>
+                            <Label  Text="-- &#176;C"           FontSize="14"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TemperatureValue"   x:DataType="x:String"/>
+                        </Grid>
+                    </Border>
+                    <Border Padding="20" StrokeShape="RoundRectangle 30" BackgroundColor="#05339C" Stroke="Transparent">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                            <Label  Text="Water Quality:"       FontSize="14"       Grid.Column="0"     VerticalOptions="Center"/>
+                            <Label  Text="--"                   FontSize="14"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TurbidityValue"     x:DataType="x:String"/>
+                        </Grid>
+                    </Border>
+                    <Border Padding="20" StrokeShape="RoundRectangle 30" BackgroundColor="#05339C" Stroke="Transparent">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                            <Label  Text="pH Level:"            FontSize="14"       Grid.Column="0"     VerticalOptions="Center"/>
+                            <Label  Text="--"                    FontSize="14"       Grid.Column="1"     VerticalOptions="Center"    x:Name="pHValue"            x:DataType="x:String"/>
+                        </Grid>
+                    </Border>
+                    <Border Padding="20" StrokeShape="RoundRectangle 30" BackgroundColor="#05339C" Stroke="Transparent">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                            <Label  Text="Time Last Fed:"       FontSize="14"       Grid.Column="0"     VerticalOptions="Center"/>
+                            <Label  Text="--"                   FontSize="14"       Grid.Column="1"     VerticalOptions="Center"    x:Name="TimeValue"          x:DataType="x:String"/>
+                        </Grid>
+                    </Border>
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto">
                         <Label  Text="Type of fish:"        FontSize="16"       Grid.Column="0"     VerticalOptions="Center"/>
                         <Entry  x:Name="TypeEntry"          Text="{Binding Type}"        Placeholder="--"            Grid.Column="1"     WidthRequest="100"  HorizontalOptions="End"/>
@@ -43,28 +49,23 @@
             </ScrollView>
         </ContentPage>
 
-        <ContentPage Title="Controls">
+        <ContentPage Title="Controls" BackgroundColor="#1055C9">
             <ScrollView>
                 <Grid x:Name="controlButtonGrid"
                     Padding="10"
                     ColumnSpacing="10"
-                    RowSpacing="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                    RowSpacing="10"
+                    ColumnDefinitions="*,*"
+                    RowDefinitions="Auto,Auto,Auto">
 
                     <!-- SET CUSTOM NAME -->
                     <Button Grid.Row="0"
                         Grid.Column="0"
                         HeightRequest="100"
                         Text="Set Custom Name"
-                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        BackgroundColor="#05339C"
                         Clicked="OnSetCustomNameClicked"/>          
 
                     <!-- SET FEED TIME -->
@@ -72,7 +73,9 @@
                         Grid.Column="1"
                         HeightRequest="100"
                         Text="Set Feed Time"
-                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        BackgroundColor="#05339C"
                         Clicked="OnSetFeederTimeClicked"/>
 
                     <!-- FEED NOW -->
@@ -80,7 +83,9 @@
                         Grid.Column="0"
                         HeightRequest="100"
                         Text="Feed Now"
-                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        BackgroundColor="#05339C"
                         Clicked="OnFeedNowClicked"/>
 
                     <!-- RESET -->
@@ -88,7 +93,9 @@
                         Grid.Column="1"
                         HeightRequest="100"
                         Text="Reset Arduino"
-                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        BackgroundColor="#05339C"
                         Clicked="OnResetArduinoClicked"/>
 
                     <!-- NEW PROFILE -->
@@ -96,7 +103,9 @@
                         Grid.Column="0"
                         HeightRequest="100"
                         Text="Create New Profile"
-                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        BackgroundColor="#05339C"
                         Clicked="OnNewProfileClicked"/>
 
                     <!-- Set PH -->
@@ -104,7 +113,8 @@
                         Grid.Column="0"
                         HeightRequest="100"
                         Text="Test"
-                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        BackgroundColor="#05339C"
                         Clicked="OnSetPHClicked"/>-->
                 </Grid>
             </ScrollView>

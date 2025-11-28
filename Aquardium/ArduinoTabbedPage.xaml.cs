@@ -26,8 +26,10 @@ public partial class ArduinoTabbedPage : TabbedPage
             var wifiSetupButton = new Button
             {
                 Text = "WiFi Setup",
-                BackgroundColor = Color.FromArgb("#2196F3"),
-                HeightRequest = 100
+                TextColor = Colors.White,
+                BackgroundColor = Color.FromArgb("#05339C"),
+                HeightRequest = 100,
+                FontAttributes = FontAttributes.Bold
             };
             Grid.SetRow(wifiSetupButton, 2);
             Grid.SetColumn(wifiSetupButton, 1);

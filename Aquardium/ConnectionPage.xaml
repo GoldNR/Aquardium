@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Aquardium.ConnectionPage"
              Title="ConnectionPage"
-             BackgroundColor="DeepSkyBlue"
+             BackgroundColor="#41A67E"
              NavigationPage.HasNavigationBar="False">
     <VerticalStackLayout
         Padding="30,0"
